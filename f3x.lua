@@ -1,20 +1,13 @@
-local function WaitForChildOfClass(parent, className)
-    local child = parent:FindFirstChild(className)
-    if child then
-        return child
-    end
-    
-    local result = parent.ChildAdded:Wait()
-    
-    if result:IsA(className) then
-        return result
-    else
-        return WaitForChildOfClass(parent, className)
-    end
+local function WaitForChildOfClass(parent, class)
+	local child = parent:FindFirstChildOfClass(class)
+	while not child or child.ClassName ~= class do
+		child = parent.ChildAdded:Wait()
+	end
+	return child
 end
 
 local Player = game.Players.LocalPlayer
-local serverEndpoint = Player.Character:FindFirstChildOfClass("Tool"):FindFirstChildOfClass("BindableFunction"):WaitForChildOfClass("RemoteFunction")
+local serverEndpoint = Player.Character:FindFirstChildOfClass("Tool"):FindFirstChildOfClass("BindableFunction"):WaitForChildOfClass(Player.Character:FindFirstChildOfClass("Tool"):FindFirstChildOfClass("BindableFunction"), "RemoteFunction")
 local classNames = {Part = "Normal", TrussPart = "Truss", WedgePart = "Wedge", CornerWedgePart = "Corner", SpawnLocation = "Spawn"}
 local defaultProperties = {}
 local defaultPart = Instance.new("Part")
