@@ -1,7 +1,8 @@
--- Claude cooked for no reason, i only asked if i can insert module to loadstring and use it as lib, yet it done it for me
-
--- InfoHUD Loadstring Version - Fully Configurable
--- Usage: loadstring(game:HttpGet("your_url_here"))()
+-- InfoHUD Loadstring Version - With Connect() Method
+-- Usage: 
+-- local InfoHUD = loadstring(game:HttpGet("your_url_here"))()
+-- local gui = InfoHUD.new(config)
+-- gui:connect("Player.Kills", function() return myKills end)
 
 -- ==================== PREMADE COLOR THEMES ====================
 local ColorThemes = {
@@ -57,34 +58,29 @@ local ColorThemes = {
     }
 }
 
--- ==================== CONFIGURATION ====================
-local Config = {
-    -- Choose a theme: "Purple", "Red", "Green", "Blue", "Yellow", "Orange", "Pink", "Cyan", "Dark", "Light"
-    -- Or set to nil to use custom colors below
+-- ==================== DEFAULT CONFIGURATION ====================
+local DefaultConfig = {
     Theme = "Purple",
     
-    -- GUI Settings
     GUI = {
         Name = "InfoHUD",
         Position = UDim2.new(0.62881, 0, 0.84932, 0),
         Size = UDim2.new(0, 390, 0, 88),
-        BackgroundColor = Color3.fromRGB(87, 44, 130),  -- Used if Theme is nil
+        BackgroundColor = Color3.fromRGB(87, 44, 130),
         BackgroundTransparency = 0.9,
         BorderSizePixel = 0,
-        Draggable = false,  -- Set to true to make GUI draggable
+        Draggable = false,
     },
     
-    -- Text Settings
     Text = {
         Font = Enum.FontWeight.Regular,
         FontFamily = "rbxasset://fonts/families/SourceSansPro.json",
         LabelSize = 14,
         ValueSize = 14,
-        LabelColor = Color3.fromRGB(255, 255, 255),  -- Used if Theme is nil
-        ValueColor = Color3.fromRGB(255, 255, 255),  -- Used if Theme is nil
+        LabelColor = Color3.fromRGB(255, 255, 255),
+        ValueColor = Color3.fromRGB(255, 255, 255),
     },
     
-    -- SSG (Shooting Stats) Configuration
     SSG = {
         Enabled = true,
         Labels = {
@@ -95,58 +91,14 @@ local Config = {
             Accuracy = {text = "ACCURACY", position = UDim2.new(0, 0, 0.78625, 0), size = UDim2.new(0, 52, 0, 18)}
         },
         Values = {
-            Shots = {
-                default = "0",
-                position = UDim2.new(0.13083, 0, -0.0092, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                -- Update function - called continuously
-                update = function(valueLabel)
-                    -- Example: valueLabel.Text = tostring(yourShotsVariable)
-                    return valueLabel.Text
-                end
-            },
-            Hits = {
-                default = "0",
-                position = UDim2.new(0.13083, 0, 0.19534, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    -- Example: valueLabel.Text = tostring(yourHitsVariable)
-                    return valueLabel.Text
-                end
-            },
-            Misses = {
-                default = "0",
-                position = UDim2.new(0.13083, 0, 0.39989, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    -- Example: valueLabel.Text = tostring(yourMissesVariable)
-                    return valueLabel.Text
-                end
-            },
-            Desync = {
-                default = "0",
-                position = UDim2.new(0.13083, 0, 0.58171, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    -- Example: valueLabel.Text = tostring(yourDesyncVariable)
-                    return valueLabel.Text
-                end
-            },
-            Acc = {
-                default = "100%",
-                position = UDim2.new(0.13083, 0, 0.78625, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    -- Example: Calculate accuracy
-                    -- local accuracy = (hits / shots) * 100
-                    -- valueLabel.Text = string.format("%.1f%%", accuracy)
-                    return valueLabel.Text
-                end
-            }
+            Shots = {default = "0", position = UDim2.new(0.13083, 0, -0.0092, 0), size = UDim2.new(0, 33, 0, 18)},
+            Hits = {default = "0", position = UDim2.new(0.13083, 0, 0.19534, 0), size = UDim2.new(0, 33, 0, 18)},
+            Misses = {default = "0", position = UDim2.new(0.13083, 0, 0.39989, 0), size = UDim2.new(0, 33, 0, 18)},
+            Desync = {default = "0", position = UDim2.new(0.13083, 0, 0.58171, 0), size = UDim2.new(0, 33, 0, 18)},
+            Acc = {default = "100%", position = UDim2.new(0.13083, 0, 0.78625, 0), size = UDim2.new(0, 33, 0, 18)}
         }
     },
     
-    -- Player Stats Configuration
     Player = {
         Enabled = true,
         Labels = {
@@ -157,55 +109,14 @@ local Config = {
             Total = {text = "TOTAL KILLS", position = UDim2.new(0.21429, 0, 0.78625, 0), size = UDim2.new(0, 70, 0, 18)}
         },
         Values = {
-            Kills = {
-                default = "0",
-                position = UDim2.new(0.39228, 0, -0.0092, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    -- Example: valueLabel.Text = tostring(player.leaderstats.Kills.Value)
-                    return valueLabel.Text
-                end
-            },
-            Streak = {
-                default = "0",
-                position = UDim2.new(0.39228, 0, 0.19534, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    return valueLabel.Text
-                end
-            },
-            Best = {
-                default = "0",
-                position = UDim2.new(0.39228, 0, 0.39989, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    return valueLabel.Text
-                end
-            },
-            Alive = {
-                default = "0:00",
-                position = UDim2.new(0.39228, 0, 0.58171, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    -- Example: Format time
-                    -- local minutes = math.floor(aliveTime / 60)
-                    -- local seconds = aliveTime % 60
-                    -- valueLabel.Text = string.format("%d:%02d", minutes, seconds)
-                    return valueLabel.Text
-                end
-            },
-            Total = {
-                default = "0",
-                position = UDim2.new(0.39228, 0, 0.78625, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    return valueLabel.Text
-                end
-            }
+            Kills = {default = "0", position = UDim2.new(0.39228, 0, -0.0092, 0), size = UDim2.new(0, 33, 0, 18)},
+            Streak = {default = "0", position = UDim2.new(0.39228, 0, 0.19534, 0), size = UDim2.new(0, 33, 0, 18)},
+            Best = {default = "0", position = UDim2.new(0.39228, 0, 0.39989, 0), size = UDim2.new(0, 33, 0, 18)},
+            Alive = {default = "0:00", position = UDim2.new(0.39228, 0, 0.58171, 0), size = UDim2.new(0, 33, 0, 18)},
+            Total = {default = "0", position = UDim2.new(0.39228, 0, 0.78625, 0), size = UDim2.new(0, 33, 0, 18)}
         }
     },
     
-    -- Gameplay Stats Configuration
     Gameplay = {
         Enabled = true,
         Labels = {
@@ -216,56 +127,14 @@ local Config = {
             SGG8RLD = {text = "SGG8 RELOAD", position = UDim2.new(0.47575, 0, 0.78625, 0), size = UDim2.new(0, 70, 0, 18)}
         },
         Values = {
-            FPS = {
-                default = "0",
-                position = UDim2.new(0.65373, 0, -0.0092, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    -- Calculate FPS
-                    local fps = math.floor(1 / game:GetService("RunService").RenderStepped:Wait())
-                    valueLabel.Text = tostring(fps)
-                    return valueLabel.Text
-                end
-            },
-            PING = {
-                default = "0ms",
-                position = UDim2.new(0.65373, 0, 0.19534, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    -- Get ping
-                    local ping = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()
-                    valueLabel.Text = math.floor(ping) .. "ms"
-                    return valueLabel.Text
-                end
-            },
-            SSGCD = {
-                default = "0",
-                position = UDim2.new(0.65373, 0, 0.39989, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    return valueLabel.Text
-                end
-            },
-            M9CD = {
-                default = "0",
-                position = UDim2.new(0.65373, 0, 0.58171, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    return valueLabel.Text
-                end
-            },
-            SGG8RLD = {
-                default = "0",
-                position = UDim2.new(0.65373, 0, 0.78625, 0),
-                size = UDim2.new(0, 33, 0, 18),
-                update = function(valueLabel)
-                    return valueLabel.Text
-                end
-            }
+            FPS = {default = "0", position = UDim2.new(0.65373, 0, -0.0092, 0), size = UDim2.new(0, 33, 0, 18)},
+            PING = {default = "0ms", position = UDim2.new(0.65373, 0, 0.19534, 0), size = UDim2.new(0, 33, 0, 18)},
+            SSGCD = {default = "0", position = UDim2.new(0.65373, 0, 0.39989, 0), size = UDim2.new(0, 33, 0, 18)},
+            M9CD = {default = "0", position = UDim2.new(0.65373, 0, 0.58171, 0), size = UDim2.new(0, 33, 0, 18)},
+            SGG8RLD = {default = "0", position = UDim2.new(0.65373, 0, 0.78625, 0), size = UDim2.new(0, 33, 0, 18)}
         }
     },
     
-    -- Miscellaneous Stats Configuration
     Misc = {
         Enabled = true,
         Labels = {
@@ -276,76 +145,55 @@ local Config = {
             AVGDM = {text = "AVG DMG", position = UDim2.new(0.7372, 0, 0.78625, 0), size = UDim2.new(0, 61, 0, 18)}
         },
         Values = {
-            TOP = {
-                default = "0",
-                position = UDim2.new(0.89365, 0, -0.0092, 0),
-                size = UDim2.new(0, 41, 0, 18),
-                update = function(valueLabel)
-                    return valueLabel.Text
-                end
-            },
-            PT = {
-                default = "0:00:00",
-                position = UDim2.new(0.89365, 0, 0.19534, 0),
-                size = UDim2.new(0, 41, 0, 18),
-                update = function(valueLabel)
-                    -- Example: Format playtime
-                    -- local hours = math.floor(playtime / 3600)
-                    -- local minutes = math.floor((playtime % 3600) / 60)
-                    -- local seconds = playtime % 60
-                    -- valueLabel.Text = string.format("%d:%02d:%02d", hours, minutes, seconds)
-                    return valueLabel.Text
-                end
-            },
-            SPEED = {
-                default = "0.0",
-                position = UDim2.new(0.89365, 0, 0.37716, 0),
-                size = UDim2.new(0, 41, 0, 18),
-                update = function(valueLabel)
-                    -- Example: Get player speed
-                    -- local char = game.Players.LocalPlayer.Character
-                    -- if char and char:FindFirstChild("HumanoidRootPart") then
-                    --     local speed = char.HumanoidRootPart.Velocity.Magnitude
-                    --     valueLabel.Text = string.format("%.1f", speed)
-                    -- end
-                    return valueLabel.Text
-                end
-            },
-            KD = {
-                default = "0.0",
-                position = UDim2.new(0.89365, 0, 0.58171, 0),
-                size = UDim2.new(0, 41, 0, 18),
-                update = function(valueLabel)
-                    -- Example: Calculate K/D ratio
-                    -- local kd = deaths > 0 and (kills / deaths) or kills
-                    -- valueLabel.Text = string.format("%.1f", kd)
-                    return valueLabel.Text
-                end
-            },
-            AVGDM = {
-                default = "0.0",
-                position = UDim2.new(0.89365, 0, 0.78625, 0),
-                size = UDim2.new(0, 41, 0, 18),
-                update = function(valueLabel)
-                    return valueLabel.Text
-                end
-            }
+            TOP = {default = "0", position = UDim2.new(0.89365, 0, -0.0092, 0), size = UDim2.new(0, 41, 0, 18)},
+            PT = {default = "0:00:00", position = UDim2.new(0.89365, 0, 0.19534, 0), size = UDim2.new(0, 41, 0, 18)},
+            SPEED = {default = "0.0", position = UDim2.new(0.89365, 0, 0.37716, 0), size = UDim2.new(0, 41, 0, 18)},
+            KD = {default = "0.0", position = UDim2.new(0.89365, 0, 0.58171, 0), size = UDim2.new(0, 41, 0, 18)},
+            AVGDM = {default = "0.0", position = UDim2.new(0.89365, 0, 0.78625, 0), size = UDim2.new(0, 41, 0, 18)}
         }
     },
     
-    -- Update Rate (in seconds)
-    UpdateRate = 0.1  -- How often to update values (0.1 = 10 times per second)
+    UpdateRate = 0.1
 }
 
+-- ==================== HELPER FUNCTIONS ====================
+local function DeepCopy(original)
+    local copy = {}
+    for k, v in pairs(original) do
+        if type(v) == "table" then
+            copy[k] = DeepCopy(v)
+        else
+            copy[k] = v
+        end
+    end
+    return copy
+end
+
+local function MergeTables(base, override)
+    local result = DeepCopy(base)
+    if not override then return result end
+    
+    for k, v in pairs(override) do
+        if type(v) == "table" and type(result[k]) == "table" then
+            result[k] = MergeTables(result[k], v)
+        else
+            result[k] = v
+        end
+    end
+    return result
+end
+
 -- ==================== GUI CREATION FUNCTION ====================
-local function CreateInfoHUD()
+local function CreateInfoHUD(customConfig)
+    local Config = MergeTables(DefaultConfig, customConfig)
     local G2L = {}
-    local UpdateFunctions = {}
+    local ValueLabels = {}
+    local Connections = {}
+    local UpdateThread = nil
     
     -- Apply theme if selected
-    local selectedTheme = nil
     if Config.Theme and ColorThemes[Config.Theme] then
-        selectedTheme = ColorThemes[Config.Theme]
+        local selectedTheme = ColorThemes[Config.Theme]
         Config.GUI.BackgroundColor = selectedTheme.Background
         Config.Text.LabelColor = selectedTheme.Text
         Config.Text.ValueColor = selectedTheme.Text
@@ -422,7 +270,7 @@ local function CreateInfoHUD()
     end
     
     -- Helper function to create value labels
-    local function CreateValueLabel(parent, text, position, size, updateFunc, textSize)
+    local function CreateValueLabel(parent, name, text, position, size, section, textSize)
         local label = Instance.new("TextLabel", parent)
         label["BorderSizePixel"] = 0
         label["TextSize"] = textSize or Config.Text.ValueSize
@@ -434,12 +282,11 @@ local function CreateInfoHUD()
         label["Text"] = text
         label["Position"] = position
         label["BackgroundTransparency"] = 1
+        label["Name"] = name
         
-        if updateFunc then
-            table.insert(UpdateFunctions, function()
-                updateFunc(label)
-            end)
-        end
+        -- Store reference with path
+        local path = section .. "." .. name
+        ValueLabels[path] = label
         
         return label
     end
@@ -457,7 +304,7 @@ local function CreateInfoHUD()
         end
         
         for name, data in pairs(Config.SSG.Values) do
-            CreateValueLabel(G2L["SSG_VAL"], data.default, data.position, data.size, data.update)
+            CreateValueLabel(G2L["SSG_VAL"], name, data.default, data.position, data.size, "SSG")
         end
     end
     
@@ -474,7 +321,7 @@ local function CreateInfoHUD()
         end
         
         for name, data in pairs(Config.Player.Values) do
-            CreateValueLabel(G2L["PLAYER_VAL"], data.default, data.position, data.size, data.update)
+            CreateValueLabel(G2L["PLAYER_VAL"], name, data.default, data.position, data.size, "Player")
         end
     end
     
@@ -491,7 +338,7 @@ local function CreateInfoHUD()
         end
         
         for name, data in pairs(Config.Gameplay.Values) do
-            CreateValueLabel(G2L["GAMEPLAY_VAL"], data.default, data.position, data.size, data.update)
+            CreateValueLabel(G2L["GAMEPLAY_VAL"], name, data.default, data.position, data.size, "Gameplay")
         end
     end
     
@@ -508,22 +355,112 @@ local function CreateInfoHUD()
         end
         
         for name, data in pairs(Config.Misc.Values) do
-            CreateValueLabel(G2L["MISC_VAL"], data.default, data.position, data.size, data.update)
+            CreateValueLabel(G2L["MISC_VAL"], name, data.default, data.position, data.size, "Misc")
         end
     end
     
+    -- Built-in connections for FPS and PING
+    Connections["Gameplay.FPS"] = function()
+        local fps = math.floor(1 / game:GetService("RunService").RenderStepped:Wait())
+        return tostring(fps)
+    end
+    
+    Connections["Gameplay.PING"] = function()
+        local ping = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()
+        return math.floor(ping) .. "ms"
+    end
+    
     -- Update Loop
-    spawn(function()
+    UpdateThread = spawn(function()
         while G2L["ScreenGui"] and G2L["ScreenGui"].Parent do
-            for _, updateFunc in ipairs(UpdateFunctions) do
-                pcall(updateFunc)
+            for path, updateFunc in pairs(Connections) do
+                if ValueLabels[path] then
+                    local success, result = pcall(updateFunc)
+                    if success and result then
+                        ValueLabels[path].Text = tostring(result)
+                    end
+                end
             end
             wait(Config.UpdateRate)
         end
     end)
     
-    return G2L["ScreenGui"]
+    -- ==================== PUBLIC API ====================
+    local HUD = {}
+    
+    -- Connect a value to an update function
+    function HUD:connect(path, updateFunc)
+        if ValueLabels[path] then
+            Connections[path] = updateFunc
+            return true
+        else
+            warn("InfoHUD: Invalid path '" .. path .. "'. Available paths:")
+            for availablePath, _ in pairs(ValueLabels) do
+                warn("  - " .. availablePath)
+            end
+            return false
+        end
+    end
+    
+    -- Set a value directly (one-time, not updated)
+    function HUD:setValue(path, value)
+        if ValueLabels[path] then
+            ValueLabels[path].Text = tostring(value)
+            -- Remove connection if exists
+            Connections[path] = nil
+            return true
+        else
+            warn("InfoHUD: Invalid path '" .. path .. "'")
+            return false
+        end
+    end
+    
+    -- Get a value label reference
+    function HUD:getLabel(path)
+        return ValueLabels[path]
+    end
+    
+    -- Disconnect a connection
+    function HUD:disconnect(path)
+        Connections[path] = nil
+        return true
+    end
+    
+    -- Get all available paths
+    function HUD:getPaths()
+        local paths = {}
+        for path, _ in pairs(ValueLabels) do
+            table.insert(paths, path)
+        end
+        return paths
+    end
+    
+    -- Destroy the HUD
+    function HUD:destroy()
+        if G2L["ScreenGui"] then
+            G2L["ScreenGui"]:Destroy()
+        end
+        Connections = {}
+        ValueLabels = {}
+    end
+    
+    -- Get the ScreenGui instance
+    function HUD:getGui()
+        return G2L["ScreenGui"]
+    end
+    
+    -- Update rate control
+    function HUD:setUpdateRate(rate)
+        Config.UpdateRate = rate
+    end
+    
+    return HUD
 end
 
--- ==================== EXECUTE ====================
-return CreateInfoHUD()
+-- ==================== MODULE EXPORT ====================
+local InfoHUD = {}
+InfoHUD.new = CreateInfoHUD
+InfoHUD.Themes = ColorThemes
+InfoHUD.DefaultConfig = DefaultConfig
+
+return InfoHUD
