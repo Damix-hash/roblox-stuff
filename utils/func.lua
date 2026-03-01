@@ -6,15 +6,20 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LP = Players.LocalPlayer
 
+-- Set to false to suppress all prints/warns from the module
+Utils.Verbose = true
+
 local function timestamp()
     return "[" .. os.date("%H:%M:%S") .. "]"
 end
 
 local function log(tag, msg)
+    if not Utils.Verbose then return end
     print(timestamp() .. " [Utils:" .. tag .. "] " .. tostring(msg))
 end
 
 local function warn_log(tag, msg)
+    if not Utils.Verbose then return end
     warn(timestamp() .. " [Utils:" .. tag .. "] " .. tostring(msg))
 end
 
