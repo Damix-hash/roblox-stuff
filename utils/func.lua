@@ -1,5 +1,5 @@
 -- UtilityModule by Claude
--- local Utils = loadstring(game:HttpGet("https://raw.githubusercontent.com/Damix-hash/roblox-stuff/refs/heads/main/utils/func.lua"))()
+-- Load with: local Utils = loadstring(game:HttpGet("YOUR_RAW_URL"))()
 
 local Utils = {}
 local Players = game:GetService("Players")
@@ -601,13 +601,12 @@ function Utils.BringPartsInRadius(radius, parent, options)
         or  parent:GetDescendants()        -- everything under workspace (or custom parent)
 
     for _, v in ipairs(candidates) do
-        if v:IsA("BasePart") and v ~= root then
-            -- apply filters
-            if charParts[v] then goto continue end
-            if excludeBaseplate and v.Name == "Baseplate" then goto continue end
-            if excludeAnchored and v.Anchored then goto continue end
-            if (v.Position - root.Position).Magnitude > radius then goto continue end
-
+        if v:IsA("BasePart") and v ~= root
+            and not charParts[v]
+            and not (excludeBaseplate and v.Name == "Baseplate")
+            and not (excludeAnchored and v.Anchored)
+            and (v.Position - root.Position).Magnitude <= radius
+        then
             local ok, err = pcall(function() v.CFrame = root.CFrame + offset end)
             if ok then
                 count = count + 1
@@ -615,7 +614,6 @@ function Utils.BringPartsInRadius(radius, parent, options)
                 warn_log("BringPartsInRadius", "Skipped " .. v:GetFullName() .. ": " .. tostring(err))
             end
         end
-        ::continue::
     end
 
     log("BringPartsInRadius", "Brought " .. count .. " parts within " .. radius .. " studs " .. timestamp())
