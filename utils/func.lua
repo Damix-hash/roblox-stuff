@@ -558,20 +558,66 @@ function Utils.BringPartLoop(part, interval, offset)
     return function() running = false end
 end
 
-function Utils.BringPartsInRadius(radius, parent)
-    radius = radius or 50
-    parent = parent or workspace
+-- Bring all BaseParts within radius studs to you.
+-- parent: where to search (default workspace)
+-- options table (all optional):
+--   excludeCharacters : bool   -- skip all player character parts (default true)
+--   excludeBaseplate  : bool   -- skip parts named "Baseplate" (default true)
+--   excludeAnchored   : bool   -- skip already-anchored parts (default false)
+--   onlyFromParent    : Instance -- ONLY bring direct children of this specific instance
+--                                  e.g. onlyFromParent = workspace.Drops
+--   offset            : Vector3 -- where to drop them relative to you (default 0,2,-3)
+function Utils.BringPartsInRadius(radius, parent, options)
+    radius  = radius  or 50
+    parent  = parent  or workspace
+    options = options or {}
+
+    local excludeCharacters = options.excludeCharacters ~= false  -- default true
+    local excludeBaseplate  = options.excludeBaseplate  ~= false  -- default true
+    local excludeAnchored   = options.excludeAnchored   == true   -- default false
+    local onlyFromParent    = options.onlyFromParent              -- nil = no filter
+    local offset            = options.offset or Vector3.new(0, 2, -3)
+
     local root = Utils.GetRoot()
-    if not root then return end
-    local count = 0
-    for _, v in ipairs(parent:GetDescendants()) do
-        if v:IsA("BasePart") and v ~= root then
-            if (v.Position - root.Position).Magnitude <= radius then
-                local ok = pcall(function() v.CFrame = root.CFrame + Vector3.new(0, 2, -3) end)
-                if ok then count = count + 1 end
+    if not root then return 0 end
+
+    -- build a set of all character parts to skip
+    local charParts = {}
+    if excludeCharacters then
+        for _, p in ipairs(Players:GetPlayers()) do
+            local c = p.Character
+            if c then
+                for _, part in ipairs(c:GetDescendants()) do
+                    charParts[part] = true
+                end
+                charParts[c] = true
             end
         end
     end
+
+    local count = 0
+    local candidates = onlyFromParent
+        and onlyFromParent:GetChildren()   -- only direct children of the given parent
+        or  parent:GetDescendants()        -- everything under workspace (or custom parent)
+
+    for _, v in ipairs(candidates) do
+        if v:IsA("BasePart") and v ~= root then
+            -- apply filters
+            if charParts[v] then goto continue end
+            if excludeBaseplate and v.Name == "Baseplate" then goto continue end
+            if excludeAnchored and v.Anchored then goto continue end
+            if (v.Position - root.Position).Magnitude > radius then goto continue end
+
+            local ok, err = pcall(function() v.CFrame = root.CFrame + offset end)
+            if ok then
+                count = count + 1
+            else
+                warn_log("BringPartsInRadius", "Skipped " .. v:GetFullName() .. ": " .. tostring(err))
+            end
+        end
+        ::continue::
+    end
+
     log("BringPartsInRadius", "Brought " .. count .. " parts within " .. radius .. " studs " .. timestamp())
     return count
 end
