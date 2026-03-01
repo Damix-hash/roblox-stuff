@@ -1,5 +1,5 @@
 -- UtilityModule by Claude
--- Load with: local Utils = loadstring(game:HttpGet("YOUR_RAW_URL"))()
+-- local Utils = loadstring(game:HttpGet("https://raw.githubusercontent.com/Damix-hash/roblox-stuff/refs/heads/main/utils/func.lua"))()
 
 local Utils = {}
 local Players = game:GetService("Players")
