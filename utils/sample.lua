@@ -1,7 +1,6 @@
 -- SampleScript.lua
--- Replace the URL with your actual raw file URL
 
-local Utils = loadstring(game:HttpGet("YOUR_RAW_URL_HERE"))()
+local Utils = loadstring(game:HttpGet("https://raw.githubusercontent.com/Damix-hash/roblox-stuff/refs/heads/main/utils/func.lua"))()
 
 local char  = Utils.GetChar()
 local hum   = Utils.GetHumanoid()   -- warns if char is in a folder/unexpected parent
