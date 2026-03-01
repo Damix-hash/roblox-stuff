@@ -2,6 +2,11 @@
 
 local Utils = loadstring(game:HttpGet("https://raw.githubusercontent.com/Damix-hash/roblox-stuff/refs/heads/main/utils/func.lua"))()
 
+-- Logging
+Utils.Verbose = false  -- silence everything
+Utils.Verbose = true   -- turn logs back on when debugging
+
+-- LocalPlayer
 local char  = Utils.GetChar()
 local hum   = Utils.GetHumanoid()   -- warns if char is in a folder/unexpected parent
 local root  = Utils.GetRoot()
