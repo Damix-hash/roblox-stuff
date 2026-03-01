@@ -167,6 +167,7 @@ end
 -- SAFE REMOTE / FIRE CALLS
 
 function Utils.SafeFireServer(remotePath, ...)
+    local args = {...}
     local ok, remote = pcall(function()
         return typeof(remotePath) == "Instance" and remotePath
             or game:FindFirstChild(remotePath, true)
@@ -179,7 +180,7 @@ function Utils.SafeFireServer(remotePath, ...)
         warn_log("SafeFireServer", "Not a RemoteEvent: " .. remote:GetFullName())
         return false
     end
-    local success, err = pcall(function() remote:FireServer(...) end)
+    local success, err = pcall(function() remote:FireServer(unpack(args)) end)
     if not success then
         warn_log("SafeFireServer", "FireServer failed: " .. tostring(err))
         return false
@@ -189,6 +190,7 @@ function Utils.SafeFireServer(remotePath, ...)
 end
 
 function Utils.SafeInvokeServer(remotePath, ...)
+    local args = {...}
     local ok, remote = pcall(function()
         return typeof(remotePath) == "Instance" and remotePath
             or game:FindFirstChild(remotePath, true)
@@ -201,7 +203,7 @@ function Utils.SafeInvokeServer(remotePath, ...)
         warn_log("SafeInvokeServer", "Not a RemoteFunction: " .. remote:GetFullName())
         return nil
     end
-    local success, result = pcall(function() return remote:InvokeServer(...) end)
+    local success, result = pcall(function() return remote:InvokeServer(unpack(args)) end)
     if not success then
         warn_log("SafeInvokeServer", "InvokeServer failed: " .. tostring(result))
         return nil
@@ -211,6 +213,7 @@ function Utils.SafeInvokeServer(remotePath, ...)
 end
 
 function Utils.SafeFireBindable(bindablePath, ...)
+    local args = {...}
     local ok, bindable = pcall(function()
         return typeof(bindablePath) == "Instance" and bindablePath
             or game:FindFirstChild(bindablePath, true)
@@ -223,7 +226,7 @@ function Utils.SafeFireBindable(bindablePath, ...)
         warn_log("SafeFireBindable", "Not a BindableEvent: " .. bindable:GetFullName())
         return false
     end
-    local success, err = pcall(function() bindable:Fire(...) end)
+    local success, err = pcall(function() bindable:Fire(unpack(args)) end)
     if not success then
         warn_log("SafeFireBindable", "Fire failed: " .. tostring(err))
         return false
