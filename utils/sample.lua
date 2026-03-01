@@ -1,7 +1,7 @@
 -- SampleScript.lua
 -- Replace the URL with your actual raw file URL
 
-local Utils = loadstring(game:HttpGet("https://raw.githubusercontent.com/Damix-hash/roblox-stuff/refs/heads/main/utils/func.lua"))()
+local Utils = loadstring(game:HttpGet("YOUR_RAW_URL_HERE"))()
 
 local char  = Utils.GetChar()
 local hum   = Utils.GetHumanoid()   -- warns if char is in a folder/unexpected parent
@@ -57,7 +57,35 @@ if box then
     stopBring()
 end
 
+-- Default: skips characters and Baseplate automatically
 Utils.BringPartsInRadius(30)
+
+-- Only bring parts that are direct children of a specific folder
+Utils.BringPartsInRadius(999, workspace, {
+    onlyFromParent = workspace:FindFirstChild("Drops")  -- only stuff inside workspace.Drops
+})
+
+-- Skip anchored parts too (walls, floors, map geometry)
+Utils.BringPartsInRadius(50, workspace, {
+    excludeAnchored = true
+})
+
+-- Include characters if you actually want that
+Utils.BringPartsInRadius(30, workspace, {
+    excludeCharacters = false
+})
+
+-- Custom drop position relative to you
+Utils.BringPartsInRadius(30, workspace, {
+    offset = Vector3.new(0, 5, 0)   -- stack them above you
+})
+
+-- Combine options
+Utils.BringPartsInRadius(100, workspace, {
+    onlyFromParent  = workspace:FindFirstChild("ItemFolder"),
+    excludeAnchored = true,
+    offset          = Vector3.new(0, 3, -2)
+})
 
 -- TOOLS
 Utils.EquipTool("sword")
