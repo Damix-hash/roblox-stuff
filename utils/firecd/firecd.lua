@@ -9,7 +9,7 @@ local UserInputService = game:GetService("UserInputService")
 local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
 
 _G.fireclickdetector = function(object)
-    if not object or not object:IsA("BasePart") or not object:IsA("MeshPart") then
+    if not object or not object:IsA("BasePart") then
         warn("[fireclickdetector] Invalid object passed - must be a BasePart or MeshPart")
         return
     end
