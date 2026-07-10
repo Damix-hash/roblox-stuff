@@ -8,21 +8,28 @@ local UserInputService = game:GetService("UserInputService")
 
 local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
 
-_G.fireclickdetector = function(object)
+_G.fireclickdetector = function(object, clickCount)
+    clickCount = clickCount or 1  -- defaults to 1 if not provided
+    
+    if clickCount < 1 then
+        warn("[fireclickdetector] clickCount must be provided and be at least 1")
+        return false
+    end
+
     if not object or not object:IsA("BasePart") then
-        warn("[fireclickdetector] Invalid object passed - must be a BasePart or MeshPart")
-        return
+        warn("[fireclickdetector] Invalid object passed - must be a BasePart")
+        return false
     end
 
     if not object:IsDescendantOf(game) then
         warn("[fireclickdetector] Object is not in the game (may have been destroyed)")
-        return
+        return false
     end
 
     local Camera = workspace.CurrentCamera
     if not Camera then
         warn("[fireclickdetector] No CurrentCamera found")
-        return
+        return false
     end
 
     local PreviousCameraType = Camera.CameraType
@@ -47,13 +54,22 @@ _G.fireclickdetector = function(object)
 
         if not onScreen then
             warn("[fireclickdetector] Part is not on screen after camera move")
-        else
+            return
+        end
+
+        -- Execute clicks
+        for i = 1, clickCount do
             if isMobile then
                 VirtualInputManager:SendTouchEvent(0, 1, screenPos.X, screenPos.Y) -- Begin
                 VirtualInputManager:SendTouchEvent(0, 3, screenPos.X, screenPos.Y) -- End
             else
                 VirtualInputManager:SendMouseButtonEvent(screenPos.X, screenPos.Y, 0, true, game, 0)
                 VirtualInputManager:SendMouseButtonEvent(screenPos.X, screenPos.Y, 0, false, game, 0)
+            end
+
+            -- Delay between clicks (except on last click)
+            if i < clickCount then
+                task.wait(0.1)
             end
         end
     end)
@@ -64,5 +80,8 @@ _G.fireclickdetector = function(object)
 
     if not success then
         warn("[fireclickdetector] Error during execution:", err)
+        return false
     end
+
+    return true
 end
