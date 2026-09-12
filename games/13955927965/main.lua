@@ -28,6 +28,7 @@ Sincerely,
 Contact: @infyiff on Discord
 Or join the Meowhg Discord server at:
 https://discord.gg/gfuq4FSspr
+Changelogs + sneakpeaks only on our discord server.
 
 Also, I rate Blood Zone 10/10, as someone who has spent
 80+ hours on the game (ghost cheating) and made this entire script.
