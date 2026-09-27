@@ -1,0 +1,947 @@
+{
+  "WEAPONS": {
+    "Firework Launcher": {
+      "ShootTime": 0.25,
+      "GunType": "Single",
+      "ReloadTime": 3.5,
+      "MaxAmmo": 1,
+      "SingleReload": false
+    },
+    "Grenade Launcher": {
+      "ShootTime": 0.5,
+      "GunType": "Auto",
+      "ReloadTime": 3,
+      "MaxAmmo": 6,
+      "SingleReload": false
+    },
+    "Magnum": {
+      "ShootTime": 0.3,
+      "GunType": "Single",
+      "ReloadTime": 2.5,
+      "MaxAmmo": 7,
+      "SingleReload": false
+    },
+    "AWP": {
+      "ShootTime": 0.25,
+      "GunType": "Single",
+      "ReloadTime": 2.3,
+      "MaxAmmo": 1,
+      "SingleReload": false
+    },
+    "AS VAL": {
+      "ShootTime": 0.067,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 21,
+      "SingleReload": false
+    },
+    "Watergun": {
+      "ShootTime": 0.03,
+      "GunType": "Single",
+      "ReloadTime": 1.35,
+      "MaxAmmo": 25,
+      "SingleReload": false
+    },
+    "Big Glock": {
+      "ShootTime": 0.02,
+      "GunType": "Single",
+      "ReloadTime": 5,
+      "MaxAmmo": 24,
+      "SingleReload": false
+    },
+    "Foam Blaster": {
+      "ShootTime": 0.25,
+      "GunType": "Single",
+      "ReloadTime": 0.85,
+      "MaxAmmo": 1,
+      "SingleReload": false
+    },
+    "EBR-14": {
+      "ShootTime": 0.28,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 15,
+      "SingleReload": false
+    },
+    "Flamethrower": {
+      "ShootTime": 0.1,
+      "GunType": "Auto",
+      "ReloadTime": 3,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Paintball Gun": {
+      "ShootTime": 0.08,
+      "GunType": "Single",
+      "ReloadTime": 1.7,
+      "MaxAmmo": 25,
+      "SingleReload": false
+    },
+    "PPSH": {
+      "ShootTime": 0.085,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 40,
+      "SingleReload": false
+    },
+    "Dual Glocks": {
+      "ShootTime": 0.08,
+      "GunType": "Single",
+      "ReloadTime": 2,
+      "MaxAmmo": 24,
+      "SingleReload": false
+    },
+    "AK-74u": {
+      "ShootTime": 0.07,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 35,
+      "SingleReload": false
+    },
+    "AK-47": {
+      "ShootTime": 0.125,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Propane Launcher": {
+      "ShootTime": 0.25,
+      "GunType": "Auto",
+      "ReloadTime": 3,
+      "MaxAmmo": 24,
+      "SingleReload": false
+    },
+    "Dual Uzis": {
+      "ShootTime": 0.03,
+      "GunType": "Auto",
+      "ReloadTime": 2,
+      "MaxAmmo": 60,
+      "SingleReload": false
+    },
+    "FAMAS": {
+      "ShootTime": 0.08,
+      "GunType": "Semi",
+      "ReloadTime": 2.1,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "M1 Garand": {
+      "ShootTime": 0.2,
+      "GunType": "Single",
+      "ReloadTime": 1.35,
+      "MaxAmmo": 1,
+      "SingleReload": false
+    },
+    "Skorpion": {
+      "ShootTime": 0.068,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Pistol Thing": {
+      "ShootTime": 0.12,
+      "GunType": "Single",
+      "ReloadTime": 1.7,
+      "MaxAmmo": 45,
+      "SingleReload": false
+    },
+    "MP40": {
+      "ShootTime": 0.1092,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 32,
+      "SingleReload": false
+    },
+    "Lazer Pigeon": {
+      "ShootTime": 0.125,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Kriss Vector": {
+      "ShootTime": 0.09,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Pump Shotgun": {
+      "ShootTime": 0.25,
+      "GunType": "Single",
+      "ReloadTime": 0.85,
+      "MaxAmmo": 1,
+      "SingleReload": false
+    },
+    "Honey Badger": {
+      "ShootTime": 0.08,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 25,
+      "SingleReload": false
+    },
+    "M4A1": {
+      "ShootTime": 0.135,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 35,
+      "SingleReload": false
+    },
+    "9mm Rifle": {
+      "ShootTime": 0.15,
+      "GunType": "Single",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 10,
+      "SingleReload": false
+    },
+    "Silent Pistol": {
+      "ShootTime": 0.12,
+      "GunType": "Single",
+      "ReloadTime": 1.7,
+      "MaxAmmo": 12,
+      "SingleReload": false
+    },
+    "STG 44": {
+      "ShootTime": 0.11,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Fart Barrel": {
+      "ShootTime": 0.2,
+      "GunType": "Single",
+      "ReloadTime": 1.85,
+      "MaxAmmo": 2,
+      "SingleReload": false
+    },
+    "P90": {
+      "ShootTime": 0.065,
+      "GunType": "Auto",
+      "ReloadTime": 2.5,
+      "MaxAmmo": 50,
+      "SingleReload": false
+    },
+    "MP5": {
+      "ShootTime": 0.065,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Double Barrel": {
+      "ShootTime": 0.2,
+      "GunType": "Single",
+      "ReloadTime": 1.85,
+      "MaxAmmo": 2,
+      "SingleReload": false
+    },
+    "Winchester": {
+      "ShootTime": 0.5,
+      "GunType": "Single",
+      "ReloadTime": 0.5,
+      "MaxAmmo": 6,
+      "SingleReload": true
+    },
+    "FAL": {
+      "ShootTime": 0.2,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Barret 50-Cal": {
+      "ShootTime": 0.4,
+      "GunType": "Single",
+      "ReloadTime": 4,
+      "MaxAmmo": 6,
+      "SingleReload": false,
+      "BoltTime": 1.2
+    },
+    "Pew Pew": {
+      "ShootTime": 0.15,
+      "GunType": "Single",
+      "ReloadTime": 1.7,
+      "MaxAmmo": 20,
+      "SingleReload": false
+    },
+    "Saiga-12": {
+      "ShootTime": 0.25,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 15,
+      "SingleReload": false
+    },
+    "Fire Extinguisher": {
+      "ShootTime": 0.05,
+      "GunType": "Auto",
+      "ReloadTime": 3,
+      "MaxAmmo": 100,
+      "SingleReload": false
+    },
+    "UMP": {
+      "ShootTime": 0.092,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 35,
+      "SingleReload": false
+    },
+    "8 Barrel": {
+      "ShootTime": 0.2,
+      "GunType": "Single",
+      "ReloadTime": 1.85,
+      "MaxAmmo": 8,
+      "SingleReload": false
+    },
+    "Fart Gun": {
+      "ShootTime": 0.25,
+      "GunType": "Single",
+      "ReloadTime": 3,
+      "MaxAmmo": 10,
+      "SingleReload": false
+    },
+    "SCAR-H": {
+      "ShootTime": 0.14,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "AUG": {
+      "ShootTime": 0.1,
+      "GunType": "Semi",
+      "ReloadTime": 2.1,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Revolver": {
+      "ShootTime": 0.35,
+      "GunType": "Single",
+      "ReloadTime": 2.5,
+      "MaxAmmo": 6,
+      "SingleReload": false
+    },
+    "Mac-10": {
+      "ShootTime": 0.06,
+      "GunType": "Auto",
+      "ReloadTime": 2,
+      "MaxAmmo": 32,
+      "SingleReload": false
+    },
+    "Hyperlaser Gun": {
+      "ShootTime": 0.15,
+      "GunType": "Single",
+      "ReloadTime": 0.75,
+      "MaxAmmo": 1,
+      "SingleReload": false
+    },
+    "XM250": {
+      "ShootTime": 0.09,
+      "GunType": "Auto",
+      "ReloadTime": 4,
+      "MaxAmmo": 125,
+      "SingleReload": false
+    },
+    "OneShot": {
+      "ShootTime": 0.25,
+      "GunType": "Single",
+      "ReloadTime": 3,
+      "MaxAmmo": 1,
+      "SingleReload": false
+    },
+    "Lazer Eyes": {
+      "ShootTime": 0.003,
+      "GunType": "Auto",
+      "ReloadTime": 1.8,
+      "MaxAmmo": 1000,
+      "SingleReload": false
+    },
+    "Candy Bucket": {
+      "ShootTime": 0.25,
+      "GunType": "Auto",
+      "ReloadTime": 1.1,
+      "MaxAmmo": 10,
+      "SingleReload": false
+    },
+    "PP-19 Bizon": {
+      "ShootTime": 0.085,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 64,
+      "SingleReload": false
+    },
+    "Waterballoon Bucket": {
+      "ShootTime": 0.2,
+      "GunType": "Auto",
+      "ReloadTime": 1.1,
+      "MaxAmmo": 12,
+      "SingleReload": false
+    },
+    "Dual RPG-7": {
+      "ShootTime": 0.25,
+      "GunType": "Single",
+      "ReloadTime": 0.5,
+      "MaxAmmo": 2,
+      "SingleReload": false
+    },
+    "Prop Gun": {
+      "ShootTime": 0.12,
+      "GunType": "Single",
+      "ReloadTime": 1.7,
+      "MaxAmmo": 12,
+      "SingleReload": false
+    },
+    "RPG-7": {
+      "ShootTime": 0.25,
+      "GunType": "Single",
+      "ReloadTime": 3.5,
+      "MaxAmmo": 1,
+      "SingleReload": false
+    },
+    "Classic RPG": {
+      "ShootTime": 0.25,
+      "GunType": "Single",
+      "ReloadTime": 3.5,
+      "MaxAmmo": 1,
+      "SingleReload": false
+    },
+    "Glock": {
+      "ShootTime": 0.12,
+      "GunType": "Single",
+      "ReloadTime": 1.7,
+      "MaxAmmo": 12,
+      "SingleReload": false
+    },
+    "Golden Gun": {
+      "ShootTime": 0.5,
+      "GunType": "Single",
+      "ReloadTime": 2.5,
+      "MaxAmmo": 1,
+      "SingleReload": false
+    },
+    "Hex Spitter": {
+      "ShootTime": 0.07,
+      "GunType": "Semi",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Nail Gun": {
+      "ShootTime": 0.12,
+      "GunType": "Single",
+      "ReloadTime": 2.1,
+      "MaxAmmo": 40,
+      "SingleReload": false
+    },
+    "XM8": {
+      "ShootTime": 0.08,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Lava SCAR-H": {
+      "ShootTime": 0.08,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 90,
+      "SingleReload": false
+    },
+    "Icecream Badger": {
+      "ShootTime": 0.07,
+      "GunType": "Auto",
+      "ReloadTime": 2.1,
+      "MaxAmmo": 25,
+      "SingleReload": false
+    },
+    "Full Course Minigun": {
+      "ShootTime": 0.03,
+      "GunType": "Auto",
+      "ReloadTime": 5,
+      "MaxAmmo": 1000,
+      "SingleReload": false
+    },
+    "BloodBux Bag": {
+      "ShootTime": 0.3,
+      "GunType": "Auto",
+      "ReloadTime": 1.1,
+      "MaxAmmo": 14,
+      "SingleReload": false
+    },
+    "The Minigun": {
+      "ShootTime": 0.03,
+      "GunType": "Auto",
+      "ReloadTime": 4,
+      "MaxAmmo": 200,
+      "SingleReload": false
+    },
+    "Foam Pistol": {
+      "ShootTime": 0.2,
+      "GunType": "Single",
+      "ReloadTime": 2.5,
+      "MaxAmmo": 6,
+      "SingleReload": false
+    },
+    "M79": {
+      "ShootTime": 0.5,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 1,
+      "SingleReload": false
+    },
+    "Eggsplosive Launcher": {
+      "ShootTime": 0.375,
+      "GunType": "Auto",
+      "ReloadTime": 3,
+      "MaxAmmo": 4,
+      "SingleReload": false
+    },
+    "HAR": {
+      "ShootTime": 0.33,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 8,
+      "SingleReload": false
+    },
+    "HK416": {
+      "ShootTime": 0.09,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 35,
+      "SingleReload": false
+    },
+    "MK46": {
+      "ShootTime": 0.13,
+      "GunType": "Auto",
+      "ReloadTime": 3,
+      "MaxAmmo": 100,
+      "SingleReload": false
+    },
+    "PSA": {
+      "ShootTime": 0.1,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Dual Revolvers": {
+      "ShootTime": 0.175,
+      "GunType": "Single",
+      "ReloadTime": 2.5,
+      "MaxAmmo": 12,
+      "SingleReload": false
+    },
+    "Deagle": {
+      "ShootTime": 0.2,
+      "GunType": "Single",
+      "ReloadTime": 1.8,
+      "MaxAmmo": 8,
+      "SingleReload": false
+    },
+    "Tec-9": {
+      "ShootTime": 0.09,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 35,
+      "SingleReload": false
+    },
+    "Dual AK-47s": {
+      "ShootTime": 0.08,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 60,
+      "SingleReload": false
+    },
+    "Dragunov": {
+      "ShootTime": 0.67,
+      "GunType": "Single",
+      "ReloadTime": 2.4,
+      "MaxAmmo": 10,
+      "SingleReload": false
+    },
+    "SPAS-12": {
+      "ShootTime": 0.25,
+      "GunType": "Single",
+      "ReloadTime": 0.35,
+      "MaxAmmo": 8,
+      "SingleReload": true
+    },
+    "Hunting Pistol": {
+      "ShootTime": 0.65,
+      "GunType": "Single",
+      "ReloadTime": 2.5,
+      "MaxAmmo": 7,
+      "SingleReload": false
+    },
+    "Snowball Launcher": {
+      "ShootTime": 0.33,
+      "GunType": "Auto",
+      "ReloadTime": 4,
+      "MaxAmmo": 10,
+      "SingleReload": false
+    },
+    "Thompson": {
+      "ShootTime": 0.077,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 45,
+      "SingleReload": false
+    },
+    "Foam Rifle": {
+      "ShootTime": 0.125,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Broken-47": {
+      "ShootTime": 0.125,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 120,
+      "SingleReload": false
+    },
+    "PKM": {
+      "ShootTime": 0.1,
+      "GunType": "Auto",
+      "ReloadTime": 4,
+      "MaxAmmo": 150,
+      "SingleReload": false
+    },
+    "Uzi": {
+      "ShootTime": 0.04,
+      "GunType": "Auto",
+      "ReloadTime": 2,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Finger Gun": {
+      "ShootTime": 0.11,
+      "GunType": "Auto",
+      "ReloadTime": 0,
+      "MaxAmmo": 1000,
+      "SingleReload": false
+    },
+    "Bubble Wand": {
+      "ShootTime": 0.2,
+      "GunType": "Auto",
+      "ReloadTime": 1.1,
+      "MaxAmmo": 12,
+      "SingleReload": false
+    },
+    "Fish Uzi?": {
+      "ShootTime": 0.04,
+      "GunType": "Auto",
+      "ReloadTime": 2,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Just Gun": {
+      "ShootTime": 0.12,
+      "GunType": "Single",
+      "ReloadTime": 1.7,
+      "MaxAmmo": 12,
+      "SingleReload": false
+    },
+    "The Gun": {
+      "ShootTime": 0.125,
+      "GunType": "Auto",
+      "ReloadTime": 2.25,
+      "MaxAmmo": 30,
+      "SingleReload": false
+    },
+    "Pigeon Pistol": {
+      "ShootTime": 0.2,
+      "GunType": "Single",
+      "ReloadTime": 1.8,
+      "MaxAmmo": 8,
+      "SingleReload": false
+    },
+    "Confetti Shotgun": {
+      "ShootTime": 0.25,
+      "GunType": "Single",
+      "ReloadTime": 0.85,
+      "MaxAmmo": 1,
+      "SingleReload": false
+    },
+    "Spooky Sniper": {
+      "ShootTime": 0.25,
+      "GunType": "Single",
+      "ReloadTime": 2.3,
+      "MaxAmmo": 1,
+      "SingleReload": false
+    },
+    "Kitchen Gun": {
+      "ShootTime": 0.2,
+      "GunType": "Single",
+      "ReloadTime": 1.8,
+      "MaxAmmo": 8,
+      "SingleReload": false
+    },
+    "TNT": {
+      "ShootTime": 0.25,
+      "GunType": "Auto",
+      "ReloadTime": 3,
+      "MaxAmmo": 24,
+      "SingleReload": false
+    },
+    "Classic Sword": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Blade of Grass": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Axe": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Pool Noodle": {
+      "SwingTime": 0.8,
+      "GunType": "Melee"
+    },
+    "Sickle": {
+      "SwingTime": 0.4,
+      "GunType": "Melee"
+    },
+    "Dragonslayer": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Frying Pan": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Sledge Hammer": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Bat": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Knife": {
+      "SwingTime": 0.3,
+      "GunType": "Melee"
+    },
+    "Chainsaw": {
+      "SwingTime": 0.45,
+      "GunType": "Melee"
+    },
+    "Crowbar": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Periastron Sword": {
+      "SwingTime": 0.8,
+      "GunType": "Melee"
+    },
+    "Fishy": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Pitchfork": {
+      "SwingTime": 0.85,
+      "GunType": "Melee"
+    },
+    "Bone Scythe": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Spear": {
+      "SwingTime": 0.75,
+      "GunType": "Melee"
+    },
+    "Fists": {
+      "SwingTime": 0.45,
+      "GunType": "Melee"
+    },
+    "Baguette": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Golf Club": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Longsword": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Hammer": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Pipe": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Stop Sign": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Brass Knuckles": {
+      "SwingTime": 0.37,
+      "GunType": "Melee"
+    },
+    "Large Candy Cane": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Machete": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Ban Hammer": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Katana": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    },
+    "Zombie Punch": {
+      "SwingTime": 0.45,
+      "GunType": "Melee"
+    },
+    "Lightsaber": {
+      "SwingTime": 1,
+      "GunType": "Melee"
+    }
+  },
+  "RigTypes": {
+    "R6": {
+      "Head": [
+        "Head"
+      ],
+      "Torso": [
+        "Torso"
+      ],
+      "Left_arm": [
+        "Left Arm"
+      ],
+      "Right_arm": [
+        "Right Arm"
+      ],
+      "Left_leg": [
+        "Left Leg"
+      ],
+      "Right_leg": [
+        "Right Leg"
+      ]
+    },
+    "R15": {
+      "Head": [
+        "Head"
+      ],
+      "Torso": [
+        "UpperTorso",
+        "LowerTorso"
+      ],
+      "Left_arm": [
+        "LeftUpperArm",
+        "LeftLowerArm",
+        "LeftHand"
+      ],
+      "Right_arm": [
+        "RightUpperArm",
+        "RightLowerArm",
+        "RightHand"
+      ],
+      "Left_leg": [
+        "LeftUpperLeg",
+        "LeftLowerLeg",
+        "LeftFoot"
+      ],
+      "Right_leg": [
+        "RightUpperLeg",
+        "RightLowerLeg",
+        "RightFoot"
+      ]
+    }
+  },
+  "CRATE_PRICES": {
+    "Basic Crate": 50,
+    "Rare Crate": 200,
+    "Very Rare Crate": 400
+  },
+  "SKIN_REFUNDS": {
+    "Common": 10,
+    "Rare": 25,
+    "Very Rare": 50,
+    "Legendary": 100
+  },
+  "ORIGINAL_SOUNDS": {
+    "HitMarker": {
+      "id": "rbxassetid://160432334",
+      "volume": 1
+    },
+    "Crit": {
+      "id": "rbxassetid://8255306220",
+      "volume": 1
+    },
+    "KilledSound": {
+      "id": "rbxassetid://2866718318",
+      "volume": 0.5
+    }
+  },
+  "KEEP_LIST": [
+    "[minecraft] XP gain.wav",
+    "[minecraft] bow ding.wav",
+    "[minecraft] egg throw.wav",
+    "aimbooster.wav",
+    "brotato.wav",
+    "click.wav",
+    "money claim.wav",
+    "mouthsound.wav",
+    "pop.wav",
+    "quaver.wav",
+    "regulus.wav",
+    "satisfying click.wav",
+    "spiral knight.wav",
+    "tavern misc1c.wav"
+  ],
+  "ICON_FILES": {
+    "Downed": "bone.png",
+    "Handcuffed": "handcuffs.png",
+    "Carried": "nurse.png",
+    "Carrying": "piggy.png",
+    "Ragdolled": "falling.png",
+    "Immune": "shield.png"
+  },
+  "ESP_STATUSES": [
+    {
+      "attr": "Downed",
+      "key": "Downed",
+      "label": "Downed"
+    },
+    {
+      "attr": "Handcuffed",
+      "key": "Handcuffed",
+      "label": "Handcuffed"
+    },
+    {
+      "attr": "Carried",
+      "key": "Carried",
+      "label": "Carried"
+    },
+    {
+      "attr": "Carrying",
+      "key": "Carrying",
+      "label": "Carrying"
+    },
+    {
+      "attr": "IsRagdolled",
+      "key": "Ragdolled",
+      "label": "Ragdolled"
+    },
+    {
+      "attr": "Immune",
+      "key": "Immune",
+      "label": "Immune"
+    }
+  ]
+}
