@@ -5,14 +5,17 @@
       "GunType": "Single",
       "ReloadTime": 3.5,
       "MaxAmmo": 1,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Firework"
     },
     "Grenade Launcher": {
       "ShootTime": 0.5,
       "GunType": "Auto",
       "ReloadTime": 3,
       "MaxAmmo": 6,
-      "SingleReload": false
+      "SingleReload": false,
+      "CustomShot": true,
+      "LaunchAsset": "LauncherGrenade"
     },
     "Magnum": {
       "ShootTime": 0.3,
@@ -40,7 +43,8 @@
       "GunType": "Single",
       "ReloadTime": 1.35,
       "MaxAmmo": 25,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Water"
     },
     "Big Glock": {
       "ShootTime": 0.02,
@@ -54,7 +58,8 @@
       "GunType": "Single",
       "ReloadTime": 0.85,
       "MaxAmmo": 1,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "NerfDart"
     },
     "EBR-14": {
       "ShootTime": 0.28,
@@ -68,14 +73,16 @@
       "GunType": "Auto",
       "ReloadTime": 3,
       "MaxAmmo": 30,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Fire"
     },
     "Paintball Gun": {
       "ShootTime": 0.08,
       "GunType": "Single",
       "ReloadTime": 1.7,
       "MaxAmmo": 25,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Paintball"
     },
     "PPSH": {
       "ShootTime": 0.085,
@@ -110,7 +117,9 @@
       "GunType": "Auto",
       "ReloadTime": 3,
       "MaxAmmo": 24,
-      "SingleReload": false
+      "SingleReload": false,
+      "CustomShot": true,
+      "LaunchAsset": "Propaine"
     },
     "Dual Uzis": {
       "ShootTime": 0.03,
@@ -265,7 +274,8 @@
       "GunType": "Single",
       "ReloadTime": 1.7,
       "MaxAmmo": 20,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Pew"
     },
     "Saiga-12": {
       "ShootTime": 0.25,
@@ -279,7 +289,8 @@
       "GunType": "Auto",
       "ReloadTime": 3,
       "MaxAmmo": 100,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Retardent"
     },
     "UMP": {
       "ShootTime": 0.092,
@@ -300,7 +311,8 @@
       "GunType": "Single",
       "ReloadTime": 3,
       "MaxAmmo": 10,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "FartCloud"
     },
     "SCAR-H": {
       "ShootTime": 0.14,
@@ -335,7 +347,8 @@
       "GunType": "Single",
       "ReloadTime": 0.75,
       "MaxAmmo": 1,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "LazerBeam"
     },
     "XM250": {
       "ShootTime": 0.09,
@@ -363,7 +376,8 @@
       "GunType": "Auto",
       "ReloadTime": 1.1,
       "MaxAmmo": 10,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Candy"
     },
     "PP-19 Bizon": {
       "ShootTime": 0.085,
@@ -377,14 +391,16 @@
       "GunType": "Auto",
       "ReloadTime": 1.1,
       "MaxAmmo": 12,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "WaterBalloon"
     },
     "Dual RPG-7": {
       "ShootTime": 0.25,
       "GunType": "Single",
       "ReloadTime": 0.5,
       "MaxAmmo": 2,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Rocket"
     },
     "Prop Gun": {
       "ShootTime": 0.12,
@@ -398,14 +414,16 @@
       "GunType": "Single",
       "ReloadTime": 3.5,
       "MaxAmmo": 1,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Rocket"
     },
     "Classic RPG": {
       "ShootTime": 0.25,
       "GunType": "Single",
       "ReloadTime": 3.5,
       "MaxAmmo": 1,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "ClassicRocket"
     },
     "Glock": {
       "ShootTime": 0.12,
@@ -433,7 +451,8 @@
       "GunType": "Single",
       "ReloadTime": 2.1,
       "MaxAmmo": 40,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Nail"
     },
     "XM8": {
       "ShootTime": 0.08,
@@ -447,28 +466,32 @@
       "GunType": "Auto",
       "ReloadTime": 2.25,
       "MaxAmmo": 90,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Fire"
     },
     "Icecream Badger": {
       "ShootTime": 0.07,
       "GunType": "Auto",
       "ReloadTime": 2.1,
       "MaxAmmo": 25,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Icecream"
     },
     "Full Course Minigun": {
       "ShootTime": 0.03,
       "GunType": "Auto",
       "ReloadTime": 5,
       "MaxAmmo": 1000,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Food"
     },
     "BloodBux Bag": {
       "ShootTime": 0.3,
       "GunType": "Auto",
       "ReloadTime": 1.1,
       "MaxAmmo": 14,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "BloodBux"
     },
     "The Minigun": {
       "ShootTime": 0.03,
@@ -482,21 +505,25 @@
       "GunType": "Single",
       "ReloadTime": 2.5,
       "MaxAmmo": 6,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "NerfDart"
     },
     "M79": {
       "ShootTime": 0.5,
       "GunType": "Auto",
       "ReloadTime": 2.25,
       "MaxAmmo": 1,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "GrenadeShot"
     },
     "Eggsplosive Launcher": {
       "ShootTime": 0.375,
       "GunType": "Auto",
       "ReloadTime": 3,
       "MaxAmmo": 4,
-      "SingleReload": false
+      "SingleReload": false,
+      "CustomShot": true,
+      "LaunchAsset": "EggGrenade"
     },
     "HAR": {
       "ShootTime": 0.33,
@@ -580,7 +607,8 @@
       "GunType": "Auto",
       "ReloadTime": 4,
       "MaxAmmo": 10,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Snowball"
     },
     "Thompson": {
       "ShootTime": 0.077,
@@ -594,7 +622,8 @@
       "GunType": "Auto",
       "ReloadTime": 2.25,
       "MaxAmmo": 30,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "NerfDart"
     },
     "Broken-47": {
       "ShootTime": 0.125,
@@ -622,14 +651,16 @@
       "GunType": "Auto",
       "ReloadTime": 0,
       "MaxAmmo": 1000,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Fireball"
     },
     "Bubble Wand": {
       "ShootTime": 0.2,
       "GunType": "Auto",
       "ReloadTime": 1.1,
       "MaxAmmo": 12,
-      "SingleReload": false
+      "SingleReload": false,
+      "Projectile": "Bubble"
     },
     "Fish Uzi?": {
       "ShootTime": 0.04,
@@ -814,53 +845,20 @@
   },
   "RigTypes": {
     "R6": {
-      "Head": [
-        "Head"
-      ],
-      "Torso": [
-        "Torso"
-      ],
-      "Left_arm": [
-        "Left Arm"
-      ],
-      "Right_arm": [
-        "Right Arm"
-      ],
-      "Left_leg": [
-        "Left Leg"
-      ],
-      "Right_leg": [
-        "Right Leg"
-      ]
+      "Head": ["Head"],
+      "Torso": ["Torso"],
+      "Left_arm": ["Left Arm"],
+      "Right_arm": ["Right Arm"],
+      "Left_leg": ["Left Leg"],
+      "Right_leg": ["Right Leg"]
     },
     "R15": {
-      "Head": [
-        "Head"
-      ],
-      "Torso": [
-        "UpperTorso",
-        "LowerTorso"
-      ],
-      "Left_arm": [
-        "LeftUpperArm",
-        "LeftLowerArm",
-        "LeftHand"
-      ],
-      "Right_arm": [
-        "RightUpperArm",
-        "RightLowerArm",
-        "RightHand"
-      ],
-      "Left_leg": [
-        "LeftUpperLeg",
-        "LeftLowerLeg",
-        "LeftFoot"
-      ],
-      "Right_leg": [
-        "RightUpperLeg",
-        "RightLowerLeg",
-        "RightFoot"
-      ]
+      "Head": ["Head"],
+      "Torso": ["UpperTorso", "LowerTorso"],
+      "Left_arm": ["LeftUpperArm", "LeftLowerArm", "LeftHand"],
+      "Right_arm": ["RightUpperArm", "RightLowerArm", "RightHand"],
+      "Left_leg": ["LeftUpperLeg", "LeftLowerLeg", "LeftFoot"],
+      "Right_leg": ["RightUpperLeg", "RightLowerLeg", "RightFoot"]
     }
   },
   "CRATE_PRICES": {
@@ -875,18 +873,9 @@
     "Legendary": 100
   },
   "ORIGINAL_SOUNDS": {
-    "HitMarker": {
-      "id": "rbxassetid://160432334",
-      "volume": 1
-    },
-    "Crit": {
-      "id": "rbxassetid://8255306220",
-      "volume": 1
-    },
-    "KilledSound": {
-      "id": "rbxassetid://2866718318",
-      "volume": 0.5
-    }
+    "HitMarker": { "id": "rbxassetid://160432334", "volume": 1 },
+    "Crit": { "id": "rbxassetid://8255306220", "volume": 1 },
+    "KilledSound": { "id": "rbxassetid://2866718318", "volume": 0.5 }
   },
   "KEEP_LIST": [
     "[minecraft] XP gain.wav",
@@ -913,35 +902,11 @@
     "Immune": "shield.png"
   },
   "ESP_STATUSES": [
-    {
-      "attr": "Downed",
-      "key": "Downed",
-      "label": "Downed"
-    },
-    {
-      "attr": "Handcuffed",
-      "key": "Handcuffed",
-      "label": "Handcuffed"
-    },
-    {
-      "attr": "Carried",
-      "key": "Carried",
-      "label": "Carried"
-    },
-    {
-      "attr": "Carrying",
-      "key": "Carrying",
-      "label": "Carrying"
-    },
-    {
-      "attr": "IsRagdolled",
-      "key": "Ragdolled",
-      "label": "Ragdolled"
-    },
-    {
-      "attr": "Immune",
-      "key": "Immune",
-      "label": "Immune"
-    }
+    { "attr": "Downed",      "key": "Downed",      "label": "Downed"      },
+    { "attr": "Handcuffed",  "key": "Handcuffed",  "label": "Handcuffed"  },
+    { "attr": "Carried",     "key": "Carried",     "label": "Carried"     },
+    { "attr": "Carrying",    "key": "Carrying",    "label": "Carrying"    },
+    { "attr": "IsRagdolled", "key": "Ragdolled",   "label": "Ragdolled"   },
+    { "attr": "Immune",      "key": "Immune",      "label": "Immune"      }
   ]
 }
