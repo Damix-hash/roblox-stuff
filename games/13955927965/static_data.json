@@ -908,5 +908,21 @@
     { "attr": "Carrying",    "key": "Carrying",    "label": "Carrying"    },
     { "attr": "IsRagdolled", "key": "Ragdolled",   "label": "Ragdolled"   },
     { "attr": "Immune",      "key": "Immune",      "label": "Immune"      }
-  ]
+  ],
+  "RANK_DATA": [
+      { "Name": "Copper",   "ImgID": "rbxassetid://130205652601560", "KillReq": 0,     "BaseColor": [0.666667, 0.333333, 0] },
+      { "Name": "Silver",   "ImgID": "rbxassetid://125658905738903", "KillReq": 250,   "BaseColor": [0.701961, 0.776471, 0.811765] },
+      { "Name": "Gold",     "ImgID": "rbxassetid://105292003043284", "KillReq": 1000,  "BaseColor": [1, 0.945098, 0.32549] },
+      { "Name": "Diamond",  "ImgID": "rbxassetid://95114960736271",  "KillReq": 5000,  "BaseColor": [0.333333, 1, 1] },
+      { "Name": "Elite",    "ImgID": "rbxassetid://113902195351188", "KillReq": 10000, "BaseColor": [0.666667, 0.333333, 1] },
+      { "Name": "Champion", "ImgID": "rbxassetid://101670323747500", "KillReq": 25000, "BaseColor": [1, 0.145098, 0.913725] },
+      { "Name": "Legend",   "ImgID": "rbxassetid://139196600970806", "KillReq": 50000, "BaseColor": [0.392157, 0.392157, 1] }
+  ],
+  "ADMIN_IDS": {
+      "Contributor":   [1997532651, 934315672, 4214710006, 12648065, 699995267],
+      "Tester":        [1715466788, 1330573539, 7709982466, 3659056468, 514887912, 10277200751, 7273594517, 381575430, 942253199, 3940403803],
+      "Administrator": [4320547345, 8380580027, 5143185060, 2752168747, 5389373076, 2456315616, 272084391, 3868040647, 1567177677, 618550845],
+      "Developer":     [2916276523],
+      "Owner":         [1388310011]
+  }
 }
