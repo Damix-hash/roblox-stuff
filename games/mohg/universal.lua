@@ -1,6 +1,7 @@
 repeat task.wait() until game:IsLoaded()
 
 cloneref = cloneref or function(obj) return obj end
+queueFn = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport)
 
 local getGlobalEnv = function()
     if typeof(getgenv) == "function" then
@@ -764,8 +765,7 @@ API.startBhop = function()
         local state = hum:GetState()
         if state == Enum.HumanoidStateType.Landed
            or state == Enum.HumanoidStateType.Running
-           or state == Enum.HumanoidStateType.RunningNoPhysics
-           or state == Enum.HumanoidStateType.Idle then
+           or state == Enum.HumanoidStateType.RunningNoPhysics then
             hum:ChangeState(Enum.HumanoidStateType.Jumping)
             lastJump = now
         end
@@ -784,12 +784,6 @@ end
 
 API.setupQueueTeleport = function()
     API.unc(ENV.CONNS, "queueTeleportConn")
-
-    local queueFn =
-        (typeof(queue_on_teleport) == "function" and queue_on_teleport)
-        or (typeof(syn) == "table" and type(syn.queue_on_teleport) == "function" and syn.queue_on_teleport)
-        or (typeof(fluxus) == "table" and type(fluxus.queue_on_teleport) == "function" and fluxus.queue_on_teleport)
-
     if not queueFn then return end
 
     local fired = false
