@@ -50,54 +50,6 @@ API.unc = function(tbl, key)
     tbl[key] = nil
 end
 
-API.joinDiscord = function(invite)
-    task.spawn(function()
-        pcall(function()
-            request({
-                Url = "http://127.0.0.1:6463/rpc",
-                Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
-                Body = Services.HttpService:JSONEncode({
-                    cmd = "INVITE_BROWSER",
-                    args = {
-                        code = invite
-                    },
-                    nonce = Services.HttpService:GenerateGUID(false)
-                })
-            })
-        end)
-    end)
-end
-
-API.shouldPromptDiscord = function()
-    local PROMPT_INTERVAL = 3 * 24 * 60 * 60
-    if not isfile("MOHG/discord_prompt.json") then
-        return true
-    end
-
-    local ok, data = pcall(readfile, "MOHG/discord_prompt.json")
-    if not ok then return true end
-
-    local ok2, json = pcall(Services.HttpService.JSONDecode, Services.HttpService, data)
-    if not ok2 then return true end
-
-    local lastPrompt = json.lastPrompted or 0
-    return (os.time() - lastPrompt) >= PROMPT_INTERVAL
-end
-
-if API.shouldPromptDiscord() then
-    API.joinDiscord("Pee57xu9w4")
-    writefile(
-        "MOHG/discord_prompt.json",
-        Services.HttpService:JSONEncode({
-            lastPrompted = os.time(),
-            invite = "Pee57xu9w4"
-        })
-    )
-end
-
 local Services = {
     UserInputService    = game:GetService("UserInputService"),
     VirtualInput        = nil,
@@ -396,6 +348,53 @@ local regToggle = function(group, name, flag, cfgKey)
         :OnDisabled(function() Window:Notify(name .. " disabled!", NW) end)
 end
 
+API.joinDiscord = function(invite)
+    task.spawn(function()
+        pcall(function()
+            request({
+                Url = "http://127.0.0.1:6463/rpc",
+                Method = "POST",
+                Headers = {
+                    ["Content-Type"] = "application/json"
+                },
+                Body = Services.HttpService:JSONEncode({
+                    cmd = "INVITE_BROWSER",
+                    args = {
+                        code = invite
+                    },
+                    nonce = Services.HttpService:GenerateGUID(false)
+                })
+            })
+        end)
+    end)
+end
+
+API.shouldPromptDiscord = function()
+    local PROMPT_INTERVAL = 3 * 24 * 60 * 60
+    if not isfile("MOHG/discord_prompt.json") then
+        return true
+    end
+
+    local ok, data = pcall(readfile, "MOHG/discord_prompt.json")
+    if not ok then return true end
+
+    local ok2, json = pcall(Services.HttpService.JSONDecode, Services.HttpService, data)
+    if not ok2 then return true end
+
+    local lastPrompt = json.lastPrompted or 0
+    return (os.time() - lastPrompt) >= PROMPT_INTERVAL
+end
+
+if API.shouldPromptDiscord() then
+    API.joinDiscord("Pee57xu9w4")
+    writefile(
+        "MOHG/discord_prompt.json",
+        Services.HttpService:JSONEncode({
+            lastPrompted = os.time(),
+            invite = "Pee57xu9w4"
+        })
+    )
+end
 
 API.getChar = function(plr)
     if not plr then return nil end
