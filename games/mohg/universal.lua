@@ -30,7 +30,7 @@ end
 local LANDING    = "https://raw.githubusercontent.com/Damix-hash/roblox-stuff/"
 local BASE       = LANDING .. "main/"
 local LOADER_URL = BASE .. "games/mohg/universal.lua"
-local loader = string.format("loadstring(game:HttpGet(%q))()", LOADER_URL)
+local loader = string.format("if getgenv then getgenv().alreadyRunning = nil end; loadstring(game:HttpGet(%q))()", LOADER_URL)
 local HRP = "HumanoidRootPart"
 local NS = { Type = "success", Duration = 2 }
 local NW = { Type = "warning", Duration = 2 }
@@ -72,6 +72,14 @@ setmetatable(Player, {
         return nil
     end,
 })
+if queueFn then
+    local queued = false
+    Player.Local.OnTeleport:Connect(function()
+        if not ENV.CONFIG or not ENV.CONFIG.queueTeleport or queued then return end
+        queued = true
+        queueFn(loader)
+    end)
+end
 
 local _lp = nil
 local _myUserId = nil
@@ -780,22 +788,6 @@ API.stopTpWalk = function()
     API.unc(ENV.CONNS, "tpWalkConn")
     local root = API.getRoot(Player.Local)
     if root then root.AssemblyLinearVelocity = Vector3.zero end
-end
-
-API.setupQueueTeleport = function()
-    API.unc(ENV.CONNS, "queueTeleportConn")
-    if not queueFn then return end
-
-    local fired = false
-
-    ENV.CONNS.queueTeleportConn = Player.Local.OnTeleport:Connect(function(state)
-        if not ENV.CONFIG.queueTeleport then return end
-        if fired then return end
-        if state ~= Enum.TeleportState.Started then return end
-        fired = true
-        pcall(function() queueFn(loader) end)
-        task.delay(10, function() fired = false end)
-    end)
 end
 
 local FOVState = {
@@ -2191,4 +2183,3 @@ task.spawn(function()
 end)
 
 Window._defaults = Window:GetConfig()
-API.setupQueueTeleport()
