@@ -334,7 +334,7 @@ if not UILib then
 end
 
 Window = UILib:Window({
-    Title    = "Universal",
+    Title    = "Mohg",
     Subtitle = "Private",
     AutoSave = true,
 })
