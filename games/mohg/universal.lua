@@ -1254,14 +1254,26 @@ local espDrawBundle = function(bundle, rect, hum, plr, label, dist, color)
     end
 
     if cfg.espTracers then
-        local vpW=Player.Camera.ViewportSize.X; local vpH=Player.Camera.ViewportSize.Y
-        local from=Vector2.new(vpW/2, vpH); local to=Vector2.new(rect.x+rect.w/2, rect.y+rect.h)
-        local delta=to-from; local length=delta.Magnitude; local angle=math.deg(math.atan2(delta.Y,delta.X))+90
-        bundle.tracer.Visible=true; bundle.tracer.Position=UDim2.fromOffset(from.X, from.Y)
-        bundle.tracer.Size=UDim2.fromOffset(1, length); bundle.tracer.Rotation=angle
-        bundle.tracer.BackgroundColor3=color; bundle.tracer.BackgroundTransparency=0.3
+        local vpW = Player.Camera.ViewportSize.X
+        local vpH = Player.Camera.ViewportSize.Y
+
+        local from = Vector2.new(vpW / 2, vpH)
+        local to   = Vector2.new(rect.x + rect.w / 2, rect.y + rect.h)
+
+        local delta  = to - from
+        local length = delta.Magnitude
+        local angle  = math.deg(math.atan2(delta.Y, delta.X))
+        local mid    = (from + to) / 2
+
+        bundle.tracer.Visible       = true
+        bundle.tracer.AnchorPoint   = Vector2.new(0.5, 0.5)
+        bundle.tracer.Position      = UDim2.fromOffset(mid.X, mid.Y)
+        bundle.tracer.Size          = UDim2.fromOffset(1, length)
+        bundle.tracer.Rotation      = angle - 90
+        bundle.tracer.BackgroundColor3       = color
+        bundle.tracer.BackgroundTransparency = 0.3
     else
-        bundle.tracer.Visible=false
+        bundle.tracer.Visible = false
     end
 end
 
