@@ -1496,16 +1496,16 @@ API.getTargetRageMode = function()
     for _, plr in ipairs(players) do
         local part = API.getTargetPart(plr)
         if not part then continue end
+        
         if not API.hasLineOfSight(part) then continue end
-
-        local screenPos, visible = API.toScreen(part)
-        if not visible then continue end
-
+        local screenPos, onScreen = API.toScreen(part)
+        local screenDist = onScreen and (screenPos - API.getAimReferencePoint()).Magnitude or math.huge
         local dist3D = (part.Position - Player.Camera.CFrame.Position).Magnitude
+        
         table.insert(entries, {
             player = plr,
             part = part,
-            screenDist = (screenPos - API.getAimReferencePoint()).Magnitude,
+            screenDist = screenDist,
             dist3D = dist3D,
         })
     end
