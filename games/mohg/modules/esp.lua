@@ -363,8 +363,12 @@ return function(ctx)
         local weaponName = nil
         if cfg.espWeaponName and char then
             if slowTick then
-                local tool = char:FindFirstChildWhichIsA("Tool")
-                bundle._weaponName = tool and tool.Name or false
+                if ctx.getWeaponName then
+                    bundle._weaponName = ctx.getWeaponName(char) or false
+                else
+                    local tool = char:FindFirstChildWhichIsA("Tool")
+                    bundle._weaponName = tool and tool.Name or false
+                end
             end
             weaponName = bundle._weaponName or nil
         end
