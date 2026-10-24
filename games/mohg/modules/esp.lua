@@ -298,14 +298,27 @@ return function(ctx)
         table.insert(ESPState.pools.boxes, bundle)
     end
 
+    local function resolveHealth(hum)
+        local char = hum.Parent
+        if ctx.getHealth and char then
+            local hp, mhp = ctx.getHealth(char)
+            if type(hp) == "number" and type(mhp) == "number" then
+                return hp, mhp
+            end
+        end
+        return hum.Health, hum.MaxHealth
+    end
+
     local function formatHealth(hum)
-        if hum.Health > hum.MaxHealth then return "inf" end
-        return tostring(math.floor(hum.Health))
+        local hp, mhp = resolveHealth(hum)
+        if hp > mhp then return "inf" end
+        return tostring(math.floor(hp))
     end
 
     local function formatMaxHealth(hum)
-        if hum.Health > hum.MaxHealth then return "inf" end
-        return tostring(math.floor(hum.MaxHealth))
+        local hp, mhp = resolveHealth(hum)
+        if hp > mhp then return "inf" end
+        return tostring(math.floor(mhp))
     end
 
     -- ------------------------------------------------------------------
@@ -437,7 +450,7 @@ return function(ctx)
 
         -- info label (distance + health)
         local fd = math.floor(dist)
-        local hp, mhp = hum.Health, hum.MaxHealth
+        local hp, mhp = resolveHealth(hum)
         local infoStr
         if bundle._infoD == fd and bundle._infoH == hp and bundle._infoM == mhp
             and bundle._infoCD == cfg.espDistance and bundle._infoCH == cfg.espHealth then
