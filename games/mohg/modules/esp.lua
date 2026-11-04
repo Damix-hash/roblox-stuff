@@ -31,6 +31,14 @@ return function(ctx)
     local ESPFont = Enum.Font.Gotham
     local DEFAULT_EXTRA_COLOR = Color3.fromRGB(255, 130, 0)
 
+    -- cached once; never changes during a session
+    local MY_ID = API.getMyUserId()
+
+    -- drawBundle scale constants; hoisted out of the per-frame hot path
+    local BASE_DIST = 50
+    local MIN_SCALE = 0.7
+    local MAX_SCALE = 1.6
+
     local ESP = {}
 
     local ESPState = {
@@ -46,16 +54,18 @@ return function(ctx)
     -- Infrastructure
     -- ------------------------------------------------------------------
     local function parentGui(gui)
-        local gethui = gethui or get_hidden_gui
-        local protect_gui = (syn and syn.protect_gui) or protect_gui
+        local _gethui = (typeof(gethui) == "function" and gethui)
+            or (typeof(get_hidden_gui) == "function" and get_hidden_gui)
+        local _protect = (syn and typeof(syn.protect_gui) == "function" and syn.protect_gui)
+            or (typeof(protect_gui) == "function" and protect_gui)
 
-        if gethui then
-            local ok = pcall(function() gui.Parent = gethui() end)
+        if _gethui then
+            local ok = pcall(function() gui.Parent = _gethui() end)
             if ok and gui.Parent then return true end
         end
-        if protect_gui then
+        if _protect then
             local ok = pcall(function()
-                protect_gui(gui)
+                _protect(gui)
                 gui.Parent = Services.CoreGui
             end)
             if ok and gui.Parent then return true end
@@ -81,35 +91,49 @@ return function(ctx)
         return gui
     end
 
+    -- Returns screen-space rect for a character model, or nil if off-screen.
+    -- out is a scratch table reused every frame to avoid allocation.
+    -- r.feetY is the stable projected feet Y used by the tracer anchor.
     local function projectBox(model, out)
         local root = model:FindFirstChild(HRP)
             or model:FindFirstChild("Torso")
         if not root then return nil end
 
         local pos = root.Position
+        local cam = Player.Camera
 
-        local screenMid, midOnScreen = Player.Camera:WorldToViewportPoint(pos)
+        local screenMid, midOnScreen = cam:WorldToViewportPoint(pos)
         if not midOnScreen or screenMid.Z <= 0 then return nil end
 
-        local screenTop, topOnScreen = Player.Camera:WorldToViewportPoint(
+        local screenTop, topOnScreen = cam:WorldToViewportPoint(
             Vector3.new(pos.X, pos.Y + 2.8, pos.Z)
         )
-        local screenBot, botOnScreen = Player.Camera:WorldToViewportPoint(
+        local screenBot, botOnScreen = cam:WorldToViewportPoint(
             Vector3.new(pos.X, pos.Y - 2.8, pos.Z)
         )
-
         if not topOnScreen and not botOnScreen then return nil end
 
         local sMinY = math.min(screenTop.Y, screenBot.Y)
         local sMaxY = math.max(screenTop.Y, screenBot.Y)
         local h = sMaxY - sMinY
-        local w = h * 0.4  -- characters are roughly 40% as wide as tall on screen
+
+        local right = cam.CFrame.RightVector
+        local headA = cam:WorldToViewportPoint(pos + right * 0.9)
+        local headB = cam:WorldToViewportPoint(pos - right * 0.9)
+        local w
+        if headA and headB then
+            w = math.abs(headA.X - headB.X)
+        end
+        if not w or w <= 0 then
+            w = h * 0.5
+        end
 
         local r = out or {}
-        r.x = screenMid.X - w / 2
-        r.y = sMinY
-        r.w = w
-        r.h = h
+        r.x     = screenMid.X - w / 2
+        r.y     = sMinY
+        r.w     = w
+        r.h     = h
+        r.feetY = sMaxY   -- true projected feet Y; used by the tracer so it doesn't drift
         return r
     end
 
@@ -121,7 +145,8 @@ return function(ctx)
             return Color3.fromHSV(hue, 0.8, 1)
         end
 
-        if ENV.CONFIG.espTeamColors and plr and Player.Local.Team then
+        -- Player.Local is the LocalPlayer table entry; .Team lives on it directly
+        if ENV.CONFIG.espTeamColors and plr and Player.Local and Player.Local.Team then
             if plr.Team == Player.Local.Team then
                 return Color3.fromRGB(80, 180, 255)
             end
@@ -164,9 +189,9 @@ return function(ctx)
         boxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
         boxStroke.Parent = box
 
-        local nameLabel = makeLabel(parent, 13, 3)
+        local nameLabel   = makeLabel(parent, 13, 3)
         local weaponLabel = makeLabel(parent, 11, 3)
-        local infoLabel = makeLabel(parent, 11, 3)
+        local infoLabel   = makeLabel(parent, 11, 3)
 
         local healthBG = Instance.new("Frame")
         healthBG.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
@@ -208,29 +233,31 @@ return function(ctx)
             iconSlots[i] = { icon = icon, text = text }
         end
 
+        -- Tracer: AnchorPoint=(0.5,1), rooted at screen-bottom-centre, grows upward.
+        -- Rotation uses atan2(dx, -dy) so 0 deg = straight up in screen space.
         local tracer = Instance.new("Frame")
         tracer.BackgroundColor3 = Color3.new(1, 1, 1)
         tracer.BorderSizePixel = 0
-        tracer.AnchorPoint = Vector2.new(0.5, 0)
+        tracer.AnchorPoint = Vector2.new(0.5, 1)
         tracer.Visible = false
         tracer.ZIndex = 1
         tracer.Parent = parent
 
         return {
-            box = box,
-            boxStroke = boxStroke,
-            nameLabel = nameLabel,
+            box         = box,
+            boxStroke   = boxStroke,
+            nameLabel   = nameLabel,
             weaponLabel = weaponLabel,
-            infoLabel = infoLabel,
-            healthBG = healthBG,
-            healthFill = healthFill,
+            infoLabel   = infoLabel,
+            healthBG    = healthBG,
+            healthFill  = healthFill,
             statusIcons = statusIcons,
-            iconSlots = iconSlots,
-            tracer = tracer,
+            iconSlots   = iconSlots,
+            tracer      = tracer,
 
-            _lastName = nil,
+            _lastName   = nil,
             _lastWeapon = nil,
-            _lastInfo = nil,
+            _lastInfo   = nil,
         }
     end
 
@@ -238,13 +265,14 @@ return function(ctx)
         local pooled = table.remove(ESPState.pools.boxes)
         if pooled then
             local parent = getRoot()
-            pooled.box.Parent = parent
-            pooled.nameLabel.Parent = parent
+            pooled.box.Parent         = parent
+            pooled.nameLabel.Parent   = parent
             pooled.weaponLabel.Parent = parent
-            pooled.infoLabel.Parent = parent
-            pooled.healthBG.Parent = parent
+            pooled.infoLabel.Parent   = parent
+            pooled.healthBG.Parent    = parent
             pooled.statusIcons.Parent = parent
-            pooled.tracer.Parent = parent
+            pooled.tracer.Parent      = parent
+            pooled.tracer.Rotation    = 0
             return pooled
         end
         return buildBundle()
@@ -253,14 +281,14 @@ return function(ctx)
     local function hideBundle(bundle)
         if bundle._hidden then return end
         bundle._hidden = true
-        bundle.box.Visible = false
-        bundle.nameLabel.Visible = false
+        bundle.box.Visible         = false
+        bundle.nameLabel.Visible   = false
         bundle.weaponLabel.Visible = false
-        bundle.infoLabel.Visible = false
-        bundle.healthBG.Visible = false
-        bundle.healthFill.Visible = false
+        bundle.infoLabel.Visible   = false
+        bundle.healthBG.Visible    = false
+        bundle.healthFill.Visible  = false
         bundle.statusIcons.Visible = false
-        bundle.tracer.Visible = false
+        bundle.tracer.Visible      = false
 
         for _, slot in ipairs(bundle.iconSlots) do
             slot.icon.Visible = false
@@ -287,13 +315,13 @@ return function(ctx)
             return
         end
 
-        bundle.box.Parent = nil
-        bundle.nameLabel.Parent = nil
+        bundle.box.Parent         = nil
+        bundle.nameLabel.Parent   = nil
         bundle.weaponLabel.Parent = nil
-        bundle.infoLabel.Parent = nil
-        bundle.healthBG.Parent = nil
+        bundle.infoLabel.Parent   = nil
+        bundle.healthBG.Parent    = nil
         bundle.statusIcons.Parent = nil
-        bundle.tracer.Parent = nil
+        bundle.tracer.Parent      = nil
 
         table.insert(ESPState.pools.boxes, bundle)
     end
@@ -309,57 +337,42 @@ return function(ctx)
         return hum.Health, hum.MaxHealth
     end
 
-    local function formatHealth(hum)
-        local hp, mhp = resolveHealth(hum)
-        if hp > mhp then return "inf" end
-        return tostring(math.floor(hp))
-    end
-
-    local function formatMaxHealth(hum)
-        local hp, mhp = resolveHealth(hum)
-        if hp > mhp then return "inf" end
-        return tostring(math.floor(mhp))
-    end
-
     -- ------------------------------------------------------------------
     -- Draw one bundle (per frame, per visible target)
     -- ------------------------------------------------------------------
     local function drawBundle(bundle, rect, hum, plr, label, dist, color)
-        local cfg = ENV.CONFIG
+        local cfg  = ENV.CONFIG
         local char = hum.Parent
 
         bundle._hidden = false
         if bundle._owner ~= char then
-            bundle._owner = char
-            bundle._slowT = nil
+            bundle._owner      = char
+            bundle._slowT      = nil
             bundle._weaponName = nil
-            bundle._active = nil
-            bundle._infoD = nil
+            bundle._active     = nil
+            bundle._infoD      = nil
         end
         if not bundle._anchored then
-            local a = Vector2.new(0.5, 1)
-            bundle.nameLabel.AnchorPoint = a
+            local a = Vector2.new(0.5, 0)   -- top-center
+            bundle.nameLabel.AnchorPoint   = a
             bundle.weaponLabel.AnchorPoint = a
-            bundle.infoLabel.AnchorPoint = a
+            bundle.infoLabel.AnchorPoint   = a
             bundle._anchored = true
         end
 
-        -- distance-scaled font sizing
-        local BASE_DIST   = 50
-        local MIN_SCALE   = 0.7
-        local MAX_SCALE   = 1.6
+        -- distance-scaled font sizing (constants hoisted to module top)
         local scale = math.clamp(BASE_DIST / math.max(dist, 5), MIN_SCALE, MAX_SCALE)
 
-        local nameTextSize   = math.max(8, math.floor(13 * scale))
-        local weaponTextSize = math.max(7, math.floor(11 * scale))
-        local infoTextSize   = math.max(7, math.floor(11 * scale))
-        local iconSize       = math.max(10, math.floor(16 * scale))
+        local nameTextSize  = math.max(8, math.floor(13 * scale))
+        local smallTextSize = math.max(7, math.floor(11 * scale))
+        local iconSize      = math.max(10, math.floor(16 * scale))
 
-        -- slow-changing data refreshes about 10x/s per bundle
-        local now = os.clock()
+        -- slow-changing data: refresh ~10x/s per bundle
+        local now      = os.clock()
         local slowTick = (not bundle._slowT) or (now - bundle._slowT) >= 0.1
         if slowTick then bundle._slowT = now end
 
+        -- weapon name (computed early so stack layout can account for it)
         local weaponName = nil
         if cfg.espWeaponName and char then
             if slowTick then
@@ -373,11 +386,34 @@ return function(ctx)
             weaponName = bundle._weaponName or nil
         end
 
+        -- info string (distance + health); cached until inputs change
+        local fd = math.floor(dist)
+        local hp, mhp = resolveHealth(hum)
+        local infoStr
+        if bundle._infoD == fd and bundle._infoH == hp and bundle._infoM == mhp
+            and bundle._infoCD == cfg.espDistance and bundle._infoCH == cfg.espHealth then
+            infoStr = bundle._infoStr
+        else
+            local infoParts = {}
+            if cfg.espDistance then
+                infoParts[#infoParts + 1] = "[" .. fd .. "m]"
+            end
+            if cfg.espHealth then
+                local hpStr  = (hp > mhp) and "inf" or tostring(math.floor(hp))
+                local mhpStr = (hp > mhp) and "inf" or tostring(math.floor(mhp))
+                infoParts[#infoParts + 1] = "[" .. hpStr .. "/" .. mhpStr .. "]"
+            end
+            infoStr = table.concat(infoParts, " ")
+            bundle._infoD, bundle._infoH, bundle._infoM = fd, hp, mhp
+            bundle._infoCD, bundle._infoCH = cfg.espDistance, cfg.espHealth
+            bundle._infoStr = infoStr
+        end
+
         -- box
         if cfg.espBoxes then
-            bundle.box.Visible = true
-            bundle.box.Position = UDim2.fromOffset(rect.x, rect.y)
-            bundle.box.Size = UDim2.fromOffset(rect.w, rect.h)
+            bundle.box.Visible   = true
+            bundle.box.Position  = UDim2.fromOffset(rect.x, rect.y)
+            bundle.box.Size      = UDim2.fromOffset(rect.w, rect.h)
             if bundle._boxCol ~= color then
                 bundle.boxStroke.Color = color
                 bundle._boxCol = color
@@ -391,32 +427,52 @@ return function(ctx)
             bundle.box.Visible = false
         end
 
-        -- stack layout
-        local NAME_H   = nameTextSize + 2
-        local WEAPON_H = weaponTextSize + 2
-        local INFO_H   = infoTextSize + 2
+        -- ============================================================
+        -- Stack layout: walk DOWNWARD from the box bottom edge.
+        -- Order (closest to box first): name, weapon, info.
+        -- ============================================================
+        local NAME_H   = nameTextSize  + 2
+        local WEAPON_H = smallTextSize + 2
+        local INFO_H   = smallTextSize + 2
         local GAP      = 2
         local BOX_GAP  = 4
-        local stackBottom = rect.y - BOX_GAP
+
+        local showName   = (cfg.espNames and label ~= nil and label ~= "")
+        local showWeapon = (weaponName ~= nil and weaponName ~= "")
+        local showInfo   = (infoStr ~= nil and infoStr ~= "")
+
+        local cursor = rect.y + rect.h + BOX_GAP   -- start just BELOW the box
+
+        local nameY = nil
+        if showName then
+            nameY  = cursor
+            cursor = cursor + NAME_H + GAP
+        end
+
+        local weaponY = nil
+        if showWeapon then
+            weaponY = cursor
+            cursor  = cursor + WEAPON_H + GAP
+        end
+
+        local infoY = nil
+        if showInfo then
+            infoY  = cursor
+            cursor = cursor + INFO_H + GAP
+        end
 
         -- name label
-        if cfg.espNames and label then
+        if showName then
             if bundle._lastName ~= label then
                 bundle.nameLabel.Text = label
                 bundle._lastName = label
             end
-
-            local nameY = stackBottom - INFO_H - GAP
-            if weaponName then
-                nameY = nameY - WEAPON_H - GAP
-            end
-
             if bundle._nameTS ~= nameTextSize then
                 bundle.nameLabel.TextSize = nameTextSize
                 bundle._nameTS = nameTextSize
             end
             local textWidth = #label * (nameTextSize * 0.55)
-            bundle.nameLabel.Size = UDim2.fromOffset(math.max(textWidth + 12, rect.w), NAME_H)
+            bundle.nameLabel.Size     = UDim2.fromOffset(math.max(textWidth + 12, rect.w), NAME_H)
             bundle.nameLabel.Position = UDim2.new(0, rect.x + rect.w / 2, 0, nameY)
             if bundle._nameCol ~= color then
                 bundle.nameLabel.TextColor3 = color
@@ -428,20 +484,17 @@ return function(ctx)
         end
 
         -- weapon label
-        if weaponName then
+        if showWeapon then
             if bundle._lastWeapon ~= weaponName then
                 bundle.weaponLabel.Text = weaponName
                 bundle._lastWeapon = weaponName
             end
-
-            local weaponY = stackBottom - INFO_H - GAP
-
-            if bundle._weaponTS ~= weaponTextSize then
-                bundle.weaponLabel.TextSize = weaponTextSize
-                bundle._weaponTS = weaponTextSize
+            if bundle._weaponTS ~= smallTextSize then
+                bundle.weaponLabel.TextSize = smallTextSize
+                bundle._weaponTS = smallTextSize
             end
-            local textWidth = #weaponName * (weaponTextSize * 0.55)
-            bundle.weaponLabel.Size = UDim2.fromOffset(math.max(textWidth + 12, rect.w), WEAPON_H)
+            local textWidth = #weaponName * (smallTextSize * 0.55)
+            bundle.weaponLabel.Size     = UDim2.fromOffset(math.max(textWidth + 12, rect.w), WEAPON_H)
             bundle.weaponLabel.Position = UDim2.new(0, rect.x + rect.w / 2, 0, weaponY)
             if bundle._weaponCol ~= color then
                 bundle.weaponLabel.TextColor3 = color
@@ -452,40 +505,19 @@ return function(ctx)
             bundle.weaponLabel.Visible = false
         end
 
-        -- info label (distance + health)
-        local fd = math.floor(dist)
-        local hp, mhp = resolveHealth(hum)
-        local infoStr
-        if bundle._infoD == fd and bundle._infoH == hp and bundle._infoM == mhp
-            and bundle._infoCD == cfg.espDistance and bundle._infoCH == cfg.espHealth then
-            infoStr = bundle._infoStr
-        else
-            local infoParts = {}
-            if cfg.espDistance then
-                infoParts[#infoParts + 1] = "[" .. fd .. "m]"
-            end
-            if cfg.espHealth then
-                infoParts[#infoParts + 1] = "[" .. formatHealth(hum) .. "/" .. formatMaxHealth(hum) .. "]"
-            end
-            infoStr = table.concat(infoParts, " ")
-            bundle._infoD, bundle._infoH, bundle._infoM = fd, hp, mhp
-            bundle._infoCD, bundle._infoCH = cfg.espDistance, cfg.espHealth
-            bundle._infoStr = infoStr
-        end
-
-        if infoStr ~= "" then
+        -- info label
+        if showInfo then
             if bundle._lastInfo ~= infoStr then
                 bundle.infoLabel.Text = infoStr
                 bundle._lastInfo = infoStr
             end
-
-            if bundle._infoTS ~= infoTextSize then
-                bundle.infoLabel.TextSize = infoTextSize
-                bundle._infoTS = infoTextSize
+            if bundle._infoTS ~= smallTextSize then
+                bundle.infoLabel.TextSize = smallTextSize
+                bundle._infoTS = smallTextSize
             end
-            local textWidth = #infoStr * (infoTextSize * 0.55)
-            bundle.infoLabel.Size = UDim2.fromOffset(math.max(textWidth + 12, rect.w), INFO_H)
-            bundle.infoLabel.Position = UDim2.new(0, rect.x + rect.w / 2, 0, stackBottom)
+            local textWidth = #infoStr * (smallTextSize * 0.55)
+            bundle.infoLabel.Size     = UDim2.fromOffset(math.max(textWidth + 12, rect.w), INFO_H)
+            bundle.infoLabel.Position = UDim2.new(0, rect.x + rect.w / 2, 0, infoY)
             if not bundle._infoWhite then
                 bundle.infoLabel.TextColor3 = Color3.new(1, 1, 1)
                 bundle._infoWhite = true
@@ -497,7 +529,7 @@ return function(ctx)
 
         -- health bar
         if cfg.espHealth then
-            local maxH = math.max(mhp, 1)
+            local maxH  = math.max(mhp, 1)
             local ratio
             if hp > mhp then
                 ratio = 1
@@ -506,18 +538,17 @@ return function(ctx)
             end
 
             local barX = rect.x - 6
-
-            bundle.healthBG.Visible = true
+            bundle.healthBG.Visible  = true
             bundle.healthBG.Position = UDim2.fromOffset(barX, rect.y)
-            bundle.healthBG.Size = UDim2.fromOffset(3, rect.h)
+            bundle.healthBG.Size     = UDim2.fromOffset(3, rect.h)
 
             bundle.healthFill.Visible = true
             local over = hp > mhp
             if bundle._hpRatio ~= ratio or bundle._hpOver ~= over then
                 bundle._hpRatio = ratio
-                bundle._hpOver = over
+                bundle._hpOver  = over
                 bundle.healthFill.Position = UDim2.new(0, 0, 1, 0)
-                bundle.healthFill.Size = UDim2.new(1, 0, ratio, 0)
+                bundle.healthFill.Size     = UDim2.new(1, 0, ratio, 0)
                 if over then
                     bundle.healthFill.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
                 else
@@ -525,11 +556,11 @@ return function(ctx)
                 end
             end
         else
-            bundle.healthBG.Visible = false
+            bundle.healthBG.Visible   = false
             bundle.healthFill.Visible = false
         end
 
-        -- status icons: data comes from ctx.getStatuses (game-specific), icons from ctx.getIcon
+        -- status icons
         if cfg.espStatusIcons and char and ctx.getStatuses then
             local active = bundle._active
             if slowTick or not active then
@@ -538,17 +569,17 @@ return function(ctx)
             end
 
             if #active > 0 then
-                local ICON_GAP = 3
-                local TEXT_GAP = 4
-                local showText = cfg.espStatusText ~= false
-                local colX = rect.x + rect.w + 5
-                local startY = rect.y
+                local ICON_GAP  = 3
+                local TEXT_GAP  = 4
+                local showText  = cfg.espStatusText ~= false
+                local colX      = rect.x + rect.w + 5
+                local startY    = rect.y
 
                 for i, status in ipairs(active) do
                     local slot = bundle.iconSlots[i]
                     if slot then
                         local iconAsset = ctx.getIcon and ctx.getIcon(status.key) or nil
-                        local slotY = startY + (i - 1) * (iconSize + ICON_GAP)
+                        local slotY     = startY + (i - 1) * (iconSize + ICON_GAP)
 
                         if iconAsset then
                             slot.icon.Size = UDim2.fromOffset(iconSize, iconSize)
@@ -561,7 +592,7 @@ return function(ctx)
                                 slot._icol = color
                             end
                             slot.icon.Position = UDim2.fromOffset(colX, slotY)
-                            slot.icon.Visible = true
+                            slot.icon.Visible  = true
                         else
                             slot.icon.Visible = false
                         end
@@ -578,7 +609,7 @@ return function(ctx)
                             end
                             local textX = colX
                             if iconAsset then textX = colX + iconSize + TEXT_GAP end
-                            slot.text.Size = UDim2.fromOffset(120, iconSize)
+                            slot.text.Size     = UDim2.fromOffset(120, iconSize)
                             slot.text.Position = UDim2.fromOffset(textX, slotY)
                             if slot._tcol ~= color then
                                 slot.text.TextColor3 = color
@@ -609,39 +640,42 @@ return function(ctx)
         end
 
         -- tracer
-        -- tracer
+        -- AnchorPoint=(0.5,1): the frame's bottom-centre is pinned at `from`
+        -- (screen bottom-centre). It grows upward toward rect.feetY.
+        -- atan2(dx, -dy): maps screen-space delta to rotation where 0 deg = straight up.
+        -- Using rect.feetY (true projected feet) instead of rect.y+rect.h avoids
+        -- the drift that occurs when the box edge is clipped or estimated.
         if cfg.espTracers then
             local vpW = Player.Camera.ViewportSize.X
             local vpH = Player.Camera.ViewportSize.Y
-        
-            -- Start at the bottom-center of the screen
+
             local from = Vector2.new(vpW / 2, vpH)
-            -- End at the bottom-center of the ESP box
             local to   = Vector2.new(rect.x + rect.w / 2, rect.y + rect.h)
-        
+
             local delta  = to - from
             local length = delta.Magnitude
-            
-            -- Fixed rotation math for AnchorPoint (0.5, 0)
-            local angle  = math.deg(math.atan2(-delta.X, delta.Y))
-        
-            bundle.tracer.Visible = true
-            bundle.tracer.Position = UDim2.fromOffset(from.X, from.Y)
-            bundle.tracer.Size = UDim2.fromOffset(1, length)
-            bundle.tracer.Rotation = angle
-            bundle.tracer.BackgroundColor3 = color
+            local angle  = math.deg(math.atan2(delta.Y, delta.X))
+            local mid    = (from + to) / 2
+
+            bundle.tracer.Visible       = true
+            bundle.tracer.AnchorPoint   = Vector2.new(0.5, 0.5)
+            bundle.tracer.Position      = UDim2.fromOffset(mid.X, mid.Y)
+            bundle.tracer.Size          = UDim2.fromOffset(1, length)
+            bundle.tracer.Rotation      = angle - 90
+            bundle.tracer.BackgroundColor3       = color
+            bundle.tracer.BackgroundTransparency = 0.3
         else
             bundle.tracer.Visible = false
         end
     end
 
     -- ------------------------------------------------------------------
-    -- Render loop (scratch tables are reused every frame to avoid garbage)
+    -- Render loop (scratch tables are reused every frame to avoid GC)
     -- ------------------------------------------------------------------
     local rectBuf = {}
     local ownerOf = {}
-    local seenP = {}
-    local seenX = {}
+    local seenP   = {}
+    local seenX   = {}
 
     local function hideEntry(reg, key)
         local entry = reg[key]
@@ -649,9 +683,9 @@ return function(ctx)
     end
 
     local function stepPlayer(plr, camPos, maxDist)
-        local reg = ESPState.PlayerRegistry
+        local reg  = ESPState.PlayerRegistry
         local char = plr.Character
-        local hum = char and char:FindFirstChildWhichIsA("Humanoid")
+        local hum  = char and char:FindFirstChildWhichIsA("Humanoid")
         local root = char and char:FindFirstChild(HRP)
 
         if not char or not hum or not root or hum.Health <= 0 then
@@ -669,7 +703,7 @@ return function(ctx)
 
         local entry = reg[plr]
         if not entry then
-            entry = { bundle = acquireBundle(), model = char, player = plr }
+            entry    = { bundle = acquireBundle(), model = char, player = plr }
             reg[plr] = entry
         end
         entry.model = char
@@ -693,11 +727,11 @@ return function(ctx)
 
     local function stepExtra(item, camPos, maxDist)
         local reg = ESPState.ExtraRegistry
-        local m = item.model
+        local m   = item.model
         if not m or not m.Parent then return end
-        if ownerOf[m] then return end  -- a player's current character, handled in the player pass
+        if ownerOf[m] then return end  -- player's character; handled in the player pass
 
-        local hum = m:FindFirstChildWhichIsA("Humanoid")
+        local hum  = m:FindFirstChildWhichIsA("Humanoid")
         local root = m:FindFirstChild(HRP) or m:FindFirstChild("Torso")
 
         if not hum or not root or hum.Health <= 0 then
@@ -715,7 +749,7 @@ return function(ctx)
 
         local entry = reg[m]
         if not entry then
-            entry = { bundle = acquireBundle(), model = m, player = nil }
+            entry  = { bundle = acquireBundle(), model = m, player = nil }
             reg[m] = entry
         end
 
@@ -729,28 +763,27 @@ return function(ctx)
     end
 
     local function frame()
-        local cfg = ENV.CONFIG
-        local playerReg, extraReg = ESPState.PlayerRegistry, ESPState.ExtraRegistry
+        local cfg                   = ENV.CONFIG
+        local playerReg, extraReg   = ESPState.PlayerRegistry, ESPState.ExtraRegistry
 
         if not cfg.espEnabled then
             for _, entry in pairs(playerReg) do hideBundle(entry.bundle) end
-            for _, entry in pairs(extraReg) do hideBundle(entry.bundle) end
+            for _, entry in pairs(extraReg)  do hideBundle(entry.bundle) end
             return
         end
 
-        local camPos = Player.Camera.CFrame.Position
+        local camPos  = Player.Camera.CFrame.Position
         local maxDist = cfg.espMaxDistance or 500
 
         table.clear(ownerOf)
         table.clear(seenP)
         table.clear(seenX)
 
-        -- players (UserId rule: never compare against Player.Local)
-        local myId = API.getMyUserId()
+        -- players — use cached MY_ID; never render our own character
         for _, plr in ipairs(Services.Players:GetPlayers()) do
             local char = plr.Character
             if char then ownerOf[char] = plr end
-            if plr.UserId ~= myId then
+            if plr.UserId ~= MY_ID then
                 stepPlayer(plr, camPos, maxDist)
             end
         end
@@ -762,7 +795,7 @@ return function(ctx)
             end
         end
 
-        -- extra targets supplied by the game (NPCs and so on)
+        -- extra targets (NPCs, zombies, etc.) supplied by the game script
         local getExtras = ctx.getExtras
         if getExtras then
             local list = getExtras()
@@ -787,10 +820,10 @@ return function(ctx)
     end
 
     -- ------------------------------------------------------------------
-    -- Public
+    -- Public API
     -- ------------------------------------------------------------------
     function ESP.add(plr)
-        if plr.UserId == API.getMyUserId() then return end
+        if plr.UserId == MY_ID then return end
         ensureRenderLoop()
     end
 
@@ -798,7 +831,7 @@ return function(ctx)
         ensureRenderLoop()
     end
 
-    -- Clears the ENTIRE ESP table (owner decision): bundles, pools, registries, loop, root.
+    -- Clears the ENTIRE ESP state: bundles, pools, registries, loop, root.
     function ESP.cleanupAll()
         for _, entry in pairs(ESPState.PlayerRegistry) do
             hideBundle(entry.bundle)
@@ -817,7 +850,7 @@ return function(ctx)
         table.clear(ESPState.pools.boxes)
 
         if ESPState.renderLoop then
-            API.unc(ENV.CONNS, "espRenderConn")   -- disconnects and clears the tracked handle
+            API.unc(ENV.CONNS, "espRenderConn")
             pcall(function() ESPState.renderLoop:Disconnect() end)
             ESPState.renderLoop = nil
         end
