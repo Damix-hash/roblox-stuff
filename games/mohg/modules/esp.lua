@@ -612,14 +612,14 @@ return function(ctx)
         if cfg.espTracers then
             local vpW = Player.Camera.ViewportSize.X
             local vpH = Player.Camera.ViewportSize.Y
-
+        
             local from = Vector2.new(vpW / 2, vpH)
-            local to = Vector2.new(rect.x + rect.w / 2, rect.y + rect.h)
-
-            local delta = to - from
+            local to   = Vector2.new(rect.x + rect.w / 2, rect.y + rect.h)
+        
+            local delta  = to - from
             local length = delta.Magnitude
-            local angle = math.deg(math.atan2(-delta.X, delta.Y))
-
+            local angle  = math.deg(math.atan2(delta.X, -delta.Y))  -- fixed argument order
+        
             bundle.tracer.Visible = true
             bundle.tracer.Position = UDim2.fromOffset(from.X, from.Y)
             bundle.tracer.Size = UDim2.fromOffset(1, length)
