@@ -609,23 +609,27 @@ return function(ctx)
         end
 
         -- tracer
+        -- tracer
         if cfg.espTracers then
             local vpW = Player.Camera.ViewportSize.X
             local vpH = Player.Camera.ViewportSize.Y
         
+            -- Start at the bottom-center of the screen
             local from = Vector2.new(vpW / 2, vpH)
+            -- End at the bottom-center of the ESP box
             local to   = Vector2.new(rect.x + rect.w / 2, rect.y + rect.h)
         
             local delta  = to - from
             local length = delta.Magnitude
-            local angle  = math.deg(math.atan2(delta.X, -delta.Y))  -- fixed argument order
+            
+            -- Fixed rotation math for AnchorPoint (0.5, 0)
+            local angle  = math.deg(math.atan2(-delta.X, delta.Y))
         
             bundle.tracer.Visible = true
             bundle.tracer.Position = UDim2.fromOffset(from.X, from.Y)
             bundle.tracer.Size = UDim2.fromOffset(1, length)
             bundle.tracer.Rotation = angle
             bundle.tracer.BackgroundColor3 = color
-            bundle.tracer.BackgroundTransparency = 0.3
         else
             bundle.tracer.Visible = false
         end
