@@ -618,7 +618,7 @@ return function(ctx)
 
             local delta = to - from
             local length = delta.Magnitude
-            local angle = math.deg(math.atan2(delta.Y, delta.X)) + 90
+            local angle = math.deg(math.atan2(-delta.X, delta.Y))
 
             bundle.tracer.Visible = true
             bundle.tracer.Position = UDim2.fromOffset(from.X, from.Y)
