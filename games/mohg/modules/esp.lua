@@ -39,6 +39,9 @@ return function(ctx)
     local MIN_SCALE = 0.7
     local MAX_SCALE = 1.6
 
+    -- how often (seconds) to re-read DisplayName in case it changed
+    local LABEL_REFRESH_INTERVAL = 5
+
     local ESP = {}
 
     local ESPState = {
@@ -225,12 +228,14 @@ return function(ctx)
             iconSlots[i] = { icon = icon, text = text }
         end
 
-        -- Tracer: AnchorPoint=(0.5,1), rooted at screen-bottom-centre, grows upward.
-        -- Rotation uses atan2(dx, -dy) so 0 deg = straight up in screen space.
+        -- Tracer: a 1px-wide Frame rotated to point from screen-bottom-centre
+        -- toward the target's feet. AnchorPoint=(0.5,0.5) with the frame
+        -- centred on the midpoint between `from` and `to` keeps the maths
+        -- simple: Size.Y = delta.Magnitude, Rotation = atan2(dy,dx) - 90.
         local tracer = Instance.new("Frame")
         tracer.BackgroundColor3 = Color3.new(1, 1, 1)
         tracer.BorderSizePixel = 0
-        tracer.AnchorPoint = Vector2.new(0.5, 1)
+        tracer.AnchorPoint = Vector2.new(0.5, 0.5)
         tracer.Visible = false
         tracer.ZIndex = 1
         tracer.Parent = parent
@@ -271,6 +276,8 @@ return function(ctx)
     end
 
     local function hideBundle(bundle)
+        -- FIX: guard against nil bundle so callers don't need to check
+        if not bundle then return end
         if bundle._hidden then return end
         bundle._hidden = true
         bundle.box.Visible         = false
@@ -278,6 +285,9 @@ return function(ctx)
         bundle.weaponLabel.Visible = false
         bundle.infoLabel.Visible   = false
         bundle.healthBG.Visible    = false
+        -- FIX: explicitly hide healthFill so its Visible state stays in sync;
+        -- hiding only healthBG leaves healthFill.Visible=true, causing a
+        -- one-frame flicker when espHealth is toggled back on.
         bundle.healthFill.Visible  = false
         bundle.statusIcons.Visible = false
         bundle.tracer.Visible      = false
@@ -289,6 +299,7 @@ return function(ctx)
     end
 
     local function destroyBundle(bundle)
+        if not bundle then return end
         bundle.box:Destroy()
         bundle.nameLabel:Destroy()
         bundle.weaponLabel:Destroy()
@@ -300,6 +311,7 @@ return function(ctx)
 
     local ESP_MAX_POOL = 64
     local function releaseBundle(bundle)
+        if not bundle then return end
         hideBundle(bundle)
 
         if #ESPState.pools.boxes >= ESP_MAX_POOL then
@@ -632,9 +644,10 @@ return function(ctx)
         end
 
         -- tracer
-        -- AnchorPoint=(0.5,1): the frame's bottom-centre is pinned at `from`
-        -- (screen bottom-centre). It grows upward toward rect.feetY.
-        -- atan2(dx, -dy): maps screen-space delta to rotation where 0 deg = straight up.
+        -- AnchorPoint=(0.5,0.5): the frame is centred on the midpoint between
+        -- `from` (screen bottom-centre) and `to` (target feet).
+        -- Size.Y = delta.Magnitude; Rotation = atan2(dy,dx) - 90 so the frame
+        -- points from `from` toward `to`.
         -- Using rect.feetY (true projected feet) instead of rect.y+rect.h avoids
         -- the drift that occurs when the box edge is clipped or estimated.
         if cfg.espTracers then
@@ -642,20 +655,20 @@ return function(ctx)
             local vpH = Player.Camera.ViewportSize.Y
 
             local from = Vector2.new(vpW / 2, vpH)
-            local to   = Vector2.new(rect.x + rect.w / 2, rect.y + rect.h)
+            local to   = Vector2.new(rect.x + rect.w / 2, rect.feetY)
 
             local delta  = to - from
             local length = delta.Magnitude
             local angle  = math.deg(math.atan2(delta.Y, delta.X))
             local mid    = (from + to) / 2
 
-            bundle.tracer.Visible       = true
-            bundle.tracer.AnchorPoint   = Vector2.new(0.5, 0.5)
-            bundle.tracer.Position      = UDim2.fromOffset(mid.X, mid.Y)
-            bundle.tracer.Size          = UDim2.fromOffset(1, length)
-            bundle.tracer.Rotation      = angle - 90
-            bundle.tracer.BackgroundColor3       = color
-            bundle.tracer.BackgroundTransparency = 0.3
+            bundle.tracer.Visible                    = true
+            bundle.tracer.AnchorPoint                = Vector2.new(0.5, 0.5)
+            bundle.tracer.Position                   = UDim2.fromOffset(mid.X, mid.Y)
+            bundle.tracer.Size                       = UDim2.fromOffset(1, length)
+            bundle.tracer.Rotation                   = angle - 90
+            bundle.tracer.BackgroundColor3           = color
+            bundle.tracer.BackgroundTransparency     = 0.3
         else
             bundle.tracer.Visible = false
         end
@@ -673,6 +686,7 @@ return function(ctx)
         local entry = reg[key]
         if entry then hideBundle(entry.bundle) end
     end
+
     local function stepPlayer(plr, camPos, maxDist)
         local reg = ESPState.PlayerRegistry
 
@@ -702,8 +716,17 @@ return function(ctx)
 
         local entry = reg[plr]
         if not entry then
-            entry    = { bundle = acquireBundle(), model = char, player = plr }
+            local bundle = acquireBundle()
+            -- FIX: guard against acquireBundle returning nil (shouldn't happen
+            -- after the eager getRoot() init, but keeps us safe regardless)
+            if not bundle then return end
+            entry    = { bundle = bundle, model = char, player = plr }
             reg[plr] = entry
+        end
+        -- FIX: also guard the bundle on an existing entry
+        if not entry.bundle then
+            reg[plr] = nil
+            return
         end
         entry.model = char
 
@@ -713,15 +736,16 @@ return function(ctx)
             return
         end
 
-        local label = entry._label
-        if not label then
-            label = plr.DisplayName ~= plr.Name
+        -- FIX: refresh label periodically so DisplayName changes are picked up
+        local now = os.clock()
+        if not entry._label or (now - (entry._labelT or 0)) >= LABEL_REFRESH_INTERVAL then
+            entry._label  = plr.DisplayName ~= plr.Name
                 and (plr.DisplayName .. " (" .. plr.Name .. ")")
                 or plr.Name
-            entry._label = label
+            entry._labelT = now
         end
 
-        drawBundle(entry.bundle, rect, hum, plr, label, dist, resolveColor(plr, nil))
+        drawBundle(entry.bundle, rect, hum, plr, entry._label, dist, resolveColor(plr, nil))
     end
 
     local function stepExtra(item, camPos, maxDist)
@@ -748,8 +772,14 @@ return function(ctx)
 
         local entry = reg[m]
         if not entry then
-            entry  = { bundle = acquireBundle(), model = m, player = nil }
+            local bundle = acquireBundle()
+            if not bundle then return end
+            entry  = { bundle = bundle, model = m, player = nil }
             reg[m] = entry
+        end
+        if not entry.bundle then
+            reg[m] = nil
+            return
         end
 
         local rect = projectBox(m, rectBuf)
@@ -793,10 +823,13 @@ return function(ctx)
             end
         end
 
-        for plr, entry in pairs(playerReg) do
-            if not seenP[plr] then
-                releaseBundle(entry.bundle)
-                playerReg[plr] = nil
+        -- FIX: skip cleanup iteration when registry is empty
+        if next(playerReg) then
+            for plr, entry in pairs(playerReg) do
+                if not seenP[plr] then
+                    releaseBundle(entry.bundle)
+                    playerReg[plr] = nil
+                end
             end
         end
 
@@ -811,16 +844,23 @@ return function(ctx)
             end
         end
 
-        for m, entry in pairs(extraReg) do
-            if not seenX[m] then
-                releaseBundle(entry.bundle)
-                extraReg[m] = nil
+        -- FIX: same empty-check for extra registry
+        if next(extraReg) then
+            for m, entry in pairs(extraReg) do
+                if not seenX[m] then
+                    releaseBundle(entry.bundle)
+                    extraReg[m] = nil
+                end
             end
         end
     end
 
     local function ensureRenderLoop()
         if ESPState.renderLoop then return end
+        -- FIX: create the ScreenGui NOW on the main thread so that
+        -- buildBundle() never calls Instance.new() from RenderStepped
+        -- (which lacks Plugin capability and would spam errors every frame).
+        getRoot()
         ESPState.renderLoop = ctx.track("espRenderConn", Services.RunService.RenderStepped:Connect(frame))
     end
 
