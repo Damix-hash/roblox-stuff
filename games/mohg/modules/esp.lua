@@ -681,10 +681,17 @@ return function(ctx)
         local entry = reg[key]
         if entry then hideBundle(entry.bundle) end
     end
-
     local function stepPlayer(plr, camPos, maxDist)
-        local reg  = ESPState.PlayerRegistry
-        local char = plr.Character
+        local reg = ESPState.PlayerRegistry
+
+        -- getModel is authoritative; plr.Character is only a fallback
+        local char = nil
+        if ctx.getModel then
+            local ok, model = pcall(ctx.getModel, plr)
+            if ok and model then char = model end
+        end
+        if not char then char = plr.Character end
+
         local hum  = char and char:FindFirstChildWhichIsA("Humanoid")
         local root = char and char:FindFirstChild(HRP)
 
