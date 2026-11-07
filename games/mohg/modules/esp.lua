@@ -1,6 +1,35 @@
 --[[
-    esp_module.lua  |  external ESP module
-    Final Bulletproof Version
+    esp_module.lua  |  external ESP module (ScreenGui-based)
+    
+    ARCHITECTURE & RULES:
+    - Loaded via loadstring from MOHG/esp_module.lua (or GitHub).
+    - Must NOT contain any MV_* macros (it runs in plain Lua).
+    - Universal across executors and games.
+    
+    LIFECYCLE (CRITICAL):
+    - The ScreenGui is created EXACTLY ONCE at module init (main thread).
+    - RenderStepped only mutates the pre-created GUI objects. It NEVER calls
+      Instance.new("ScreenGui") to prevent "Plugin" capability errors.
+    - Parent is hardcoded to CoreGui. Do not use gethui() or protect_gui()
+      here, as they can revoke Instance capability in render threads.
+    
+    CONTEXT (ctx) CONTRACT:
+      ctx.ENV, ctx.Services, ctx.Player, ctx.API, ctx.HRP  (required)
+      ctx.guiName      string    ScreenGui name
+      ctx.track        function  function(key, handle) -> handle
+      ctx.FOVState     table     optional, reads .hueOffset for rainbow
+      
+      ctx.getModel     function(plr) -> Model | nil    (required for RigIndex games)
+      ctx.getExtras    function() -> { {model=, label=, color=}, ... } | nil
+      ctx.getStatuses  function(char) -> { {key=, label=}, ... } | nil
+      ctx.getIcon      function(key) -> string | nil
+      ctx.getWeaponName function(char) -> string | nil
+      ctx.getHealth    function(char) -> hp, mhp | nil
+
+    CONFIG KEYS READ:
+      espEnabled espBoxes espNames espHealth espDistance espTeamColors
+      espTransparency espTracers espColor espRainbow espMaxDistance
+      espStatusIcons espStatusText espWeaponName
 ]]
 
 return function(ctx)
@@ -28,21 +57,13 @@ return function(ctx)
     -- Infrastructure
     -- ------------------------------------------------------------------
     local function parentGui(gui)
-        local _gethui = (typeof(gethui) == "function" and gethui)
-            or (typeof(get_hidden_gui) == "function" and get_hidden_gui)
-
-        if _gethui then
-            local ok, parent = pcall(_gethui)
-            if ok and parent then
-                local pok = pcall(function() gui.Parent = parent end)
-                if pok and gui.Parent then return true end
-            end
-        end
+        -- Universal fallback: just CoreGui.
         pcall(function() gui.Parent = Services.CoreGui end)
         return gui.Parent ~= nil
     end
 
-    -- EAGERLY create the ScreenGui at init time (main thread)
+    -- EAGERLY create the ScreenGui at init time (main thread).
+    -- DO NOT MOVE THIS INTO frame() or getRoot().
     do
         local gui = Instance.new("ScreenGui")
         gui.Name = ctx.guiName or "ESP"
@@ -55,8 +76,7 @@ return function(ctx)
     end
 
     local function getRoot()
-        -- We don't check .Parent here. The Container from gethui() can return nil
-        -- when read from RenderStepped, which triggers the error storm.
+        -- Never check .Parent here. The render thread trusts the cached reference.
         return ESPState.root
     end
 
@@ -100,18 +120,15 @@ return function(ctx)
 
     local function resolveColor(plr, override)
         if override then return override end
-
         if ENV.CONFIG.espRainbow then
             local hue = ((FOVState and FOVState.hueOffset) or 0) % 1
             return Color3.fromHSV(hue, 0.8, 1)
         end
-
         if ENV.CONFIG.espTeamColors and plr and Player.Local and Player.Local.Team then
             if plr.Team == Player.Local.Team then
                 return Color3.fromRGB(80, 180, 255)
             end
         end
-
         return ENV.CONFIG.espColor or Color3.new(1, 1, 1)
     end
 
