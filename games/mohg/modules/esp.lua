@@ -39,20 +39,11 @@ return function(ctx)
     local MIN_SCALE = 0.7
     local MAX_SCALE = 1.6
 
-    -- how often (seconds) to re-read DisplayName in case it changed
-    local LABEL_REFRESH_INTERVAL = 5
-
     local ESP = {}
 
-    -- Minimum number of bundles to keep ready in the pool at all times.
-    -- The Heartbeat refill loop tops the pool back up to this level on the
-    -- main thread, so the render thread never needs to call Instance.new.
-    local POOL_MIN = 16
-
     local ESPState = {
-        renderLoop  = nil,
-        refillLoop  = nil,   -- Heartbeat connection that keeps the pool topped up
-        root        = nil,
+        renderLoop = nil,
+        root = nil,
         pools = { boxes = {} },
         PlayerRegistry = {},
         ExtraRegistry = {},
@@ -62,23 +53,14 @@ return function(ctx)
     -- ------------------------------------------------------------------
     -- Infrastructure
     -- ------------------------------------------------------------------
-    local function parentGui(gui)
+
+    -- Build the ScreenGui ONCE here on the main thread, which has Plugin
+    -- capability.  getRoot() never calls Instance.new("ScreenGui") again;
+    -- doing so from a RenderStepped thread causes "lacking capability Plugin".
+    do
         local _gethui = (typeof(gethui) == "function" and gethui)
             or (typeof(get_hidden_gui) == "function" and get_hidden_gui)
-
-        if _gethui then
-            local ok = pcall(function() gui.Parent = _gethui() end)
-            if ok and gui.Parent then return true end
-        end
-
-        pcall(function() gui.Parent = Services.CoreGui end)
-        return gui.Parent ~= nil
-    end
-
-    local function getRoot()
-        if ESPState.root and ESPState.root.Parent then
-            return ESPState.root
-        end
+        print("[ESP] gethui available:", typeof(_gethui))
 
         local gui = Instance.new("ScreenGui")
         gui.Name = ctx.guiName or "ESP"
@@ -86,10 +68,30 @@ return function(ctx)
         gui.IgnoreGuiInset = true
         gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
         gui.DisplayOrder = 999
-        parentGui(gui)
+
+        if _gethui then
+            local ok, err = pcall(function()
+                local h = _gethui()
+                gui.Parent = h
+            end)
+            print("[ESP] gethui parent:", ok, err, gui.Parent)
+        end
+
+        if not gui.Parent then
+            local ok2, err2 = pcall(function() gui.Parent = Services.CoreGui end)
+            print("[ESP] CoreGui parent:", ok2, err2, gui.Parent)
+        end
 
         ESPState.root = gui
-        return gui
+    end
+
+    -- Returns the cached root, or nil if it was destroyed.
+    -- Never recreates the ScreenGui; that must happen on the main thread (above).
+    local function getRoot()
+        if ESPState.root and ESPState.root.Parent then
+            return ESPState.root
+        end
+        return nil
     end
 
     -- Returns screen-space rect for a character model, or nil if off-screen.
@@ -177,6 +179,7 @@ return function(ctx)
 
     local function buildBundle()
         local parent = getRoot()
+        if not parent then return nil end
 
         local box = Instance.new("Frame")
         box.BackgroundTransparency = 1
@@ -234,14 +237,12 @@ return function(ctx)
             iconSlots[i] = { icon = icon, text = text }
         end
 
-        -- Tracer: a 1px-wide Frame rotated to point from screen-bottom-centre
-        -- toward the target's feet. AnchorPoint=(0.5,0.5) with the frame
-        -- centred on the midpoint between `from` and `to` keeps the maths
-        -- simple: Size.Y = delta.Magnitude, Rotation = atan2(dy,dx) - 90.
+        -- Tracer: AnchorPoint=(0.5,1), rooted at screen-bottom-centre, grows upward.
+        -- Rotation uses atan2(dx, -dy) so 0 deg = straight up in screen space.
         local tracer = Instance.new("Frame")
         tracer.BackgroundColor3 = Color3.new(1, 1, 1)
         tracer.BorderSizePixel = 0
-        tracer.AnchorPoint = Vector2.new(0.5, 0.5)
+        tracer.AnchorPoint = Vector2.new(0.5, 1)
         tracer.Visible = false
         tracer.ZIndex = 1
         tracer.Parent = parent
@@ -268,6 +269,11 @@ return function(ctx)
         local pooled = table.remove(ESPState.pools.boxes)
         if pooled then
             local parent = getRoot()
+            if not parent then
+                -- root is gone; put it back in the pool rather than leak it
+                table.insert(ESPState.pools.boxes, pooled)
+                return nil
+            end
             pooled.box.Parent         = parent
             pooled.nameLabel.Parent   = parent
             pooled.weaponLabel.Parent = parent
@@ -278,67 +284,37 @@ return function(ctx)
             pooled.tracer.Rotation    = 0
             return pooled
         end
-        -- Pool is empty: return nil and let the Heartbeat refill loop build
-        -- more bundles on the main thread. The render thread must never call
-        -- buildBundle() directly (Instance.new is forbidden there).
-        return nil
-    end
-
-    -- Called from Heartbeat (main thread) to keep the pool stocked.
-    local function refillPool()
-        local pool = ESPState.pools.boxes
-        -- Also recreate the root if it was destroyed (e.g. after cleanupAll).
-        getRoot()
-        while #pool < POOL_MIN do
-            local ok, bundle = pcall(buildBundle)
-            if ok and bundle then
-                -- Park it off-screen until acquired.
-                bundle.box.Parent         = nil
-                bundle.nameLabel.Parent   = nil
-                bundle.weaponLabel.Parent = nil
-                bundle.infoLabel.Parent   = nil
-                bundle.healthBG.Parent    = nil
-                bundle.statusIcons.Parent = nil
-                bundle.tracer.Parent      = nil
-                table.insert(pool, bundle)
-            else
-                break   -- buildBundle failed; don't spin
-            end
-        end
+        return buildBundle()
     end
 
     local function hideBundle(bundle)
-        -- FIX: guard against nil bundle so callers don't need to check
-        if not bundle then return end
-        if bundle._hidden then return end
+        if not bundle or bundle._hidden then return end
         bundle._hidden = true
-        bundle.box.Visible         = false
-        bundle.nameLabel.Visible   = false
-        bundle.weaponLabel.Visible = false
-        bundle.infoLabel.Visible   = false
-        bundle.healthBG.Visible    = false
-        -- FIX: explicitly hide healthFill so its Visible state stays in sync;
-        -- hiding only healthBG leaves healthFill.Visible=true, causing a
-        -- one-frame flicker when espHealth is toggled back on.
-        bundle.healthFill.Visible  = false
-        bundle.statusIcons.Visible = false
-        bundle.tracer.Visible      = false
-
-        for _, slot in ipairs(bundle.iconSlots) do
-            slot.icon.Visible = false
-            slot.text.Visible = false
+        if bundle.box then bundle.box.Visible = false end
+        if bundle.nameLabel then bundle.nameLabel.Visible = false end
+        if bundle.weaponLabel then bundle.weaponLabel.Visible = false end
+        if bundle.infoLabel then bundle.infoLabel.Visible = false end
+        if bundle.healthBG then bundle.healthBG.Visible = false end
+        if bundle.healthFill then bundle.healthFill.Visible = false end
+        if bundle.statusIcons then bundle.statusIcons.Visible = false end
+        if bundle.tracer then bundle.tracer.Visible = false end
+        if bundle.iconSlots then
+            for _, slot in ipairs(bundle.iconSlots) do
+                if slot.icon then slot.icon.Visible = false end
+                if slot.text then slot.text.Visible = false end
+            end
         end
     end
 
     local function destroyBundle(bundle)
         if not bundle then return end
-        bundle.box:Destroy()
-        bundle.nameLabel:Destroy()
-        bundle.weaponLabel:Destroy()
-        bundle.infoLabel:Destroy()
-        bundle.healthBG:Destroy()
-        bundle.statusIcons:Destroy()
-        bundle.tracer:Destroy()
+        if bundle.box then bundle.box:Destroy() end
+        if bundle.nameLabel then bundle.nameLabel:Destroy() end
+        if bundle.weaponLabel then bundle.weaponLabel:Destroy() end
+        if bundle.infoLabel then bundle.infoLabel:Destroy() end
+        if bundle.healthBG then bundle.healthBG:Destroy() end
+        if bundle.statusIcons then bundle.statusIcons:Destroy() end
+        if bundle.tracer then bundle.tracer:Destroy() end
     end
 
     local ESP_MAX_POOL = 64
@@ -351,13 +327,13 @@ return function(ctx)
             return
         end
 
-        bundle.box.Parent         = nil
-        bundle.nameLabel.Parent   = nil
-        bundle.weaponLabel.Parent = nil
-        bundle.infoLabel.Parent   = nil
-        bundle.healthBG.Parent    = nil
-        bundle.statusIcons.Parent = nil
-        bundle.tracer.Parent      = nil
+        if bundle.box then bundle.box.Parent = nil end
+        if bundle.nameLabel then bundle.nameLabel.Parent = nil end
+        if bundle.weaponLabel then bundle.weaponLabel.Parent = nil end
+        if bundle.infoLabel then bundle.infoLabel.Parent = nil end
+        if bundle.healthBG then bundle.healthBG.Parent = nil end
+        if bundle.statusIcons then bundle.statusIcons.Parent = nil end
+        if bundle.tracer then bundle.tracer.Parent = nil end
 
         table.insert(ESPState.pools.boxes, bundle)
     end
@@ -676,10 +652,9 @@ return function(ctx)
         end
 
         -- tracer
-        -- AnchorPoint=(0.5,0.5): the frame is centred on the midpoint between
-        -- `from` (screen bottom-centre) and `to` (target feet).
-        -- Size.Y = delta.Magnitude; Rotation = atan2(dy,dx) - 90 so the frame
-        -- points from `from` toward `to`.
+        -- AnchorPoint=(0.5,1): the frame's bottom-centre is pinned at `from`
+        -- (screen bottom-centre). It grows upward toward rect.feetY.
+        -- atan2(dx, -dy): maps screen-space delta to rotation where 0 deg = straight up.
         -- Using rect.feetY (true projected feet) instead of rect.y+rect.h avoids
         -- the drift that occurs when the box edge is clipped or estimated.
         if cfg.espTracers then
@@ -687,20 +662,20 @@ return function(ctx)
             local vpH = Player.Camera.ViewportSize.Y
 
             local from = Vector2.new(vpW / 2, vpH)
-            local to   = Vector2.new(rect.x + rect.w / 2, rect.feetY)
+            local to   = Vector2.new(rect.x + rect.w / 2, rect.y + rect.h)
 
             local delta  = to - from
             local length = delta.Magnitude
             local angle  = math.deg(math.atan2(delta.Y, delta.X))
             local mid    = (from + to) / 2
 
-            bundle.tracer.Visible                    = true
-            bundle.tracer.AnchorPoint                = Vector2.new(0.5, 0.5)
-            bundle.tracer.Position                   = UDim2.fromOffset(mid.X, mid.Y)
-            bundle.tracer.Size                       = UDim2.fromOffset(1, length)
-            bundle.tracer.Rotation                   = angle - 90
-            bundle.tracer.BackgroundColor3           = color
-            bundle.tracer.BackgroundTransparency     = 0.3
+            bundle.tracer.Visible       = true
+            bundle.tracer.AnchorPoint   = Vector2.new(0.5, 0.5)
+            bundle.tracer.Position      = UDim2.fromOffset(mid.X, mid.Y)
+            bundle.tracer.Size          = UDim2.fromOffset(1, length)
+            bundle.tracer.Rotation      = angle - 90
+            bundle.tracer.BackgroundColor3       = color
+            bundle.tracer.BackgroundTransparency = 0.3
         else
             bundle.tracer.Visible = false
         end
@@ -718,7 +693,6 @@ return function(ctx)
         local entry = reg[key]
         if entry then hideBundle(entry.bundle) end
     end
-
     local function stepPlayer(plr, camPos, maxDist)
         local reg = ESPState.PlayerRegistry
 
@@ -749,14 +723,11 @@ return function(ctx)
         local entry = reg[plr]
         if not entry then
             local bundle = acquireBundle()
-            -- FIX: guard against acquireBundle returning nil (shouldn't happen
-            -- after the eager getRoot() init, but keeps us safe regardless)
             if not bundle then return end
-            entry    = { bundle = bundle, model = char, player = plr }
+            entry = { bundle = bundle, model = char, player = plr }
             reg[plr] = entry
         end
-        -- FIX: also guard the bundle on an existing entry
-        if not entry.bundle then
+        if not entry.bundle or not entry.bundle.box then
             reg[plr] = nil
             return
         end
@@ -768,16 +739,15 @@ return function(ctx)
             return
         end
 
-        -- FIX: refresh label periodically so DisplayName changes are picked up
-        local now = os.clock()
-        if not entry._label or (now - (entry._labelT or 0)) >= LABEL_REFRESH_INTERVAL then
-            entry._label  = plr.DisplayName ~= plr.Name
+        local label = entry._label
+        if not label then
+            label = plr.DisplayName ~= plr.Name
                 and (plr.DisplayName .. " (" .. plr.Name .. ")")
                 or plr.Name
-            entry._labelT = now
+            entry._label = label
         end
 
-        drawBundle(entry.bundle, rect, hum, plr, entry._label, dist, resolveColor(plr, nil))
+        drawBundle(entry.bundle, rect, hum, plr, label, dist, resolveColor(plr, nil))
     end
 
     local function stepExtra(item, camPos, maxDist)
@@ -804,14 +774,8 @@ return function(ctx)
 
         local entry = reg[m]
         if not entry then
-            local bundle = acquireBundle()
-            if not bundle then return end
-            entry  = { bundle = bundle, model = m, player = nil }
+            entry  = { bundle = acquireBundle(), model = m, player = nil }
             reg[m] = entry
-        end
-        if not entry.bundle then
-            reg[m] = nil
-            return
         end
 
         local rect = projectBox(m, rectBuf)
@@ -824,84 +788,73 @@ return function(ctx)
     end
 
     local function frame()
-        local cfg                   = ENV.CONFIG
-        local playerReg, extraReg   = ESPState.PlayerRegistry, ESPState.ExtraRegistry
+        local ok, err = pcall(function()
+            local cfg                   = ENV.CONFIG
+            local playerReg, extraReg   = ESPState.PlayerRegistry, ESPState.ExtraRegistry
 
-        if not cfg.espEnabled then
-            for _, entry in pairs(playerReg) do hideBundle(entry.bundle) end
-            for _, entry in pairs(extraReg)  do hideBundle(entry.bundle) end
-            return
-        end
+            -- If the root ScreenGui was destroyed, go dark quietly rather than
+            -- erroring.  It cannot be rebuilt from RenderStepped.
+            if not getRoot() then return end
 
-        local camPos  = Player.Camera.CFrame.Position
-        local maxDist = cfg.espMaxDistance or 500
-
-        table.clear(ownerOf)
-        table.clear(seenP)
-        table.clear(seenX)
-
-        -- players — use cached MY_ID; never render our own character
-        for _, plr in ipairs(Services.Players:GetPlayers()) do
-            local char = nil
-            if ctx.getModel then
-                local ok, model = pcall(ctx.getModel, plr)
-                if ok and model then char = model end
+            if not cfg.espEnabled then
+                for _, entry in pairs(playerReg) do hideBundle(entry.bundle) end
+                for _, entry in pairs(extraReg)  do hideBundle(entry.bundle) end
+                return
             end
-            if not char then char = plr.Character end
 
-            if char then ownerOf[char] = plr end
-            if plr.UserId ~= MY_ID then
-                stepPlayer(plr, camPos, maxDist)
+            local camPos  = Player.Camera.CFrame.Position
+            local maxDist = cfg.espMaxDistance or 500
+
+            table.clear(ownerOf)
+            table.clear(seenP)
+            table.clear(seenX)
+
+            for _, plr in ipairs(Services.Players:GetPlayers()) do
+                local char = nil
+                if ctx.getModel then
+                    local ok, model = pcall(ctx.getModel, plr)
+                    if ok and model then char = model end
+                end
+                if not char then char = plr.Character end
+
+                if char then ownerOf[char] = plr end
+                if plr.UserId ~= MY_ID then
+                    stepPlayer(plr, camPos, maxDist)
+                end
             end
-        end
 
-        -- FIX: skip cleanup iteration when registry is empty
-        if next(playerReg) then
             for plr, entry in pairs(playerReg) do
                 if not seenP[plr] then
                     releaseBundle(entry.bundle)
                     playerReg[plr] = nil
                 end
             end
-        end
 
-        -- extra targets (NPCs, zombies, etc.) supplied by the game script
-        local getExtras = ctx.getExtras
-        if getExtras then
-            local list = getExtras()
-            if list then
-                for _, item in ipairs(list) do
-                    stepExtra(item, camPos, maxDist)
+            local getExtras = ctx.getExtras
+            if getExtras then
+                local list = getExtras()
+                if list then
+                    for _, item in ipairs(list) do
+                        stepExtra(item, camPos, maxDist)
+                    end
                 end
             end
-        end
 
-        -- FIX: same empty-check for extra registry
-        if next(extraReg) then
             for m, entry in pairs(extraReg) do
                 if not seenX[m] then
                     releaseBundle(entry.bundle)
                     extraReg[m] = nil
                 end
             end
+        end)                                 -- <-- close pcall
+        if not ok then
+            warn("[ESP] frame() errored:", err)
         end
     end
 
     local function ensureRenderLoop()
         if ESPState.renderLoop then return end
-
-        -- Build the initial pool and ScreenGui on the main thread right now,
-        -- before RenderStepped fires. This covers players/extras that appear
-        -- immediately on the first frame.
-        refillPool()
-
-        -- Heartbeat runs on the main thread (not the render thread), so it
-        -- can safely call Instance.new to top up the pool whenever it drains.
-        ESPState.refillLoop = ctx.track("espRefillConn",
-            Services.RunService.Heartbeat:Connect(refillPool))
-
-        ESPState.renderLoop = ctx.track("espRenderConn",
-            Services.RunService.RenderStepped:Connect(frame))
+        ESPState.renderLoop = ctx.track("espRenderConn", Services.RunService.RenderStepped:Connect(frame))
     end
 
     -- ------------------------------------------------------------------
@@ -933,12 +886,6 @@ return function(ctx)
             pcall(destroyBundle, bundle)
         end
         table.clear(ESPState.pools.boxes)
-
-        if ESPState.refillLoop then
-            API.unc(ENV.CONNS, "espRefillConn")
-            pcall(function() ESPState.refillLoop:Disconnect() end)
-            ESPState.refillLoop = nil
-        end
 
         if ESPState.renderLoop then
             API.unc(ENV.CONNS, "espRenderConn")
