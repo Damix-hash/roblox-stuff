@@ -788,7 +788,13 @@ return function(ctx)
 
         -- players — use cached MY_ID; never render our own character
         for _, plr in ipairs(Services.Players:GetPlayers()) do
-            local char = plr.Character
+            local char = nil
+            if ctx.getModel then
+                local ok, model = pcall(ctx.getModel, plr)
+                if ok and model then char = model end
+            end
+            if not char then char = plr.Character end
+
             if char then ownerOf[char] = plr end
             if plr.UserId ~= MY_ID then
                 stepPlayer(plr, camPos, maxDist)
