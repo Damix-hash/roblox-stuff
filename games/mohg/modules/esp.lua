@@ -44,9 +44,15 @@ return function(ctx)
 
     local ESP = {}
 
+    -- Minimum number of bundles to keep ready in the pool at all times.
+    -- The Heartbeat refill loop tops the pool back up to this level on the
+    -- main thread, so the render thread never needs to call Instance.new.
+    local POOL_MIN = 16
+
     local ESPState = {
-        renderLoop = nil,
-        root = nil,
+        renderLoop  = nil,
+        refillLoop  = nil,   -- Heartbeat connection that keeps the pool topped up
+        root        = nil,
         pools = { boxes = {} },
         PlayerRegistry = {},
         ExtraRegistry = {},
@@ -272,7 +278,33 @@ return function(ctx)
             pooled.tracer.Rotation    = 0
             return pooled
         end
-        return buildBundle()
+        -- Pool is empty: return nil and let the Heartbeat refill loop build
+        -- more bundles on the main thread. The render thread must never call
+        -- buildBundle() directly (Instance.new is forbidden there).
+        return nil
+    end
+
+    -- Called from Heartbeat (main thread) to keep the pool stocked.
+    local function refillPool()
+        local pool = ESPState.pools.boxes
+        -- Also recreate the root if it was destroyed (e.g. after cleanupAll).
+        getRoot()
+        while #pool < POOL_MIN do
+            local ok, bundle = pcall(buildBundle)
+            if ok and bundle then
+                -- Park it off-screen until acquired.
+                bundle.box.Parent         = nil
+                bundle.nameLabel.Parent   = nil
+                bundle.weaponLabel.Parent = nil
+                bundle.infoLabel.Parent   = nil
+                bundle.healthBG.Parent    = nil
+                bundle.statusIcons.Parent = nil
+                bundle.tracer.Parent      = nil
+                table.insert(pool, bundle)
+            else
+                break   -- buildBundle failed; don't spin
+            end
+        end
     end
 
     local function hideBundle(bundle)
@@ -857,11 +889,19 @@ return function(ctx)
 
     local function ensureRenderLoop()
         if ESPState.renderLoop then return end
-        -- FIX: create the ScreenGui NOW on the main thread so that
-        -- buildBundle() never calls Instance.new() from RenderStepped
-        -- (which lacks Plugin capability and would spam errors every frame).
-        getRoot()
-        ESPState.renderLoop = ctx.track("espRenderConn", Services.RunService.RenderStepped:Connect(frame))
+
+        -- Build the initial pool and ScreenGui on the main thread right now,
+        -- before RenderStepped fires. This covers players/extras that appear
+        -- immediately on the first frame.
+        refillPool()
+
+        -- Heartbeat runs on the main thread (not the render thread), so it
+        -- can safely call Instance.new to top up the pool whenever it drains.
+        ESPState.refillLoop = ctx.track("espRefillConn",
+            Services.RunService.Heartbeat:Connect(refillPool))
+
+        ESPState.renderLoop = ctx.track("espRenderConn",
+            Services.RunService.RenderStepped:Connect(frame))
     end
 
     -- ------------------------------------------------------------------
@@ -893,6 +933,12 @@ return function(ctx)
             pcall(destroyBundle, bundle)
         end
         table.clear(ESPState.pools.boxes)
+
+        if ESPState.refillLoop then
+            API.unc(ENV.CONNS, "espRefillConn")
+            pcall(function() ESPState.refillLoop:Disconnect() end)
+            ESPState.refillLoop = nil
+        end
 
         if ESPState.renderLoop then
             API.unc(ENV.CONNS, "espRenderConn")
