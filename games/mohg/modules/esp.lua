@@ -56,20 +56,12 @@ return function(ctx)
     local function parentGui(gui)
         local _gethui = (typeof(gethui) == "function" and gethui)
             or (typeof(get_hidden_gui) == "function" and get_hidden_gui)
-        local _protect = (syn and typeof(syn.protect_gui) == "function" and syn.protect_gui)
-            or (typeof(protect_gui) == "function" and protect_gui)
 
         if _gethui then
             local ok = pcall(function() gui.Parent = _gethui() end)
             if ok and gui.Parent then return true end
         end
-        if _protect then
-            local ok = pcall(function()
-                _protect(gui)
-                gui.Parent = Services.CoreGui
-            end)
-            if ok and gui.Parent then return true end
-        end
+
         pcall(function() gui.Parent = Services.CoreGui end)
         return gui.Parent ~= nil
     end
