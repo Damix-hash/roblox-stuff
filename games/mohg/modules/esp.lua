@@ -681,23 +681,34 @@ return function(ctx)
         for _, entry in pairs(ESPState.PlayerRegistry) do hideBundle(entry.bundle); destroyBundle(entry.bundle) end
         for _, entry in pairs(ESPState.ExtraRegistry) do hideBundle(entry.bundle); destroyBundle(entry.bundle) end
         table.clear(ESPState.PlayerRegistry); table.clear(ESPState.ExtraRegistry)
-
+    
         for _, bundle in ipairs(ESPState.pools.boxes) do pcall(destroyBundle, bundle) end
         table.clear(ESPState.pools.boxes)
-
+    
+        table.clear(ownerOf); table.clear(seenP); table.clear(seenX)
+    end
+    
+    function ESP.destroy()
+        -- Full teardown. Only called on script unload, not on toggle.
+        for _, entry in pairs(ESPState.PlayerRegistry) do hideBundle(entry.bundle); destroyBundle(entry.bundle) end
+        for _, entry in pairs(ESPState.ExtraRegistry) do hideBundle(entry.bundle); destroyBundle(entry.bundle) end
+        table.clear(ESPState.PlayerRegistry); table.clear(ESPState.ExtraRegistry)
+    
+        for _, bundle in ipairs(ESPState.pools.boxes) do pcall(destroyBundle, bundle) end
+        table.clear(ESPState.pools.boxes)
+    
         if ESPState.renderLoop then
-            API.unc(ENV.CONNS, "espRenderConn")
             pcall(function() ESPState.renderLoop:Disconnect() end)
             ESPState.renderLoop = nil
         end
-
+        API.unc(ENV.CONNS, "espRenderConn")
+    
         table.clear(ownerOf); table.clear(seenP); table.clear(seenX)
-
+    
         if ESPState.root then
             pcall(function() ESPState.root:Destroy() end)
             ESPState.root = nil
         end
     end
-
     return ESP
 end
